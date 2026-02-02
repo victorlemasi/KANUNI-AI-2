@@ -1,0 +1,58 @@
+{
+  "Procurement": {
+    "title": "string",
+    "description": "string",
+    "procurementMethod": "string (Open Tender, Restricted, etc.)",
+    "value": "number",
+    "currency": "string",
+    "status": "string (Pending, Approved, Rejected, Queried)",
+    "procurementOfficerId": "string (UID)",
+    "vendorId": "string (UID)",
+    "createdAt": "timestamp",
+    "updatedAt": "timestamp"
+  },
+  "Vendor": {
+    "name": "string",
+    "contactInfo": "string",
+    "taxId": "string",
+    "eligibilityStatus": "string (Eligible, Ineligible, Debarred)",
+    "pastPerformanceScore": "number (0-100)"
+  },
+  "RiskAssessment": {
+    "path": "Procurements/{procurementId}/RiskAssessments/{assessmentId}",
+    "riskLevel": "string (Low, Medium, High, Critical)",
+    "riskScore": "number (0-100)",
+    "identifiedFactors": "string[]",
+    "aiExplanation": "string",
+    "assessmentType": "string (AI, Rule-Based)",
+    "createdAt": "timestamp",
+    "assessedBy": "string (UID or 'System')"
+  },
+  "ComplianceCheck": {
+    "path": "Procurements/{procurementId}/ComplianceChecks/{checkId}",
+    "checkType": "string (PPDA, PFM, Vendor Eligibility, Threshold)",
+    "isCompliant": "boolean",
+    "details": "string",
+    "evidenceLinks": "string[]",
+    "checkedAt": "timestamp"
+  },
+  "Alert": {
+    "procurementId": "string",
+    "alertType": "string (Price Anomaly, High-Risk, Compliance Breach)",
+    "description": "string",
+    "status": "string (New, Acknowledged, Resolved)",
+    "severity": "string (Medium, High, Critical)",
+    "createdAt": "timestamp"
+  },
+  "AuditLog": {
+    "timestamp": "timestamp",
+    "userId": "string",
+    "userRole": "string",
+    "action": "string (CREATE_PROCUREMENT, APPROVE_RISK_ASSESSMENT, etc.)",
+    "entity": "string (Procurement)",
+    "entityId": "string",
+    "details": "string",
+    "aiRecommendation": "string (optional)",
+    "humanDecision": "string (optional)"
+  }
+}
