@@ -28,27 +28,30 @@ export const complianceCheckFlow = ai.defineFlow(
     },
     async (input) => {
         const response = await ai.generate({
-            prompt: `You are a Senior Compliance Auditor for public procurement, specifically trained on the Uganda PPDA Act 2003 (Amended 2021) and the PPDA Regulations 2023/2024.
+            prompt: `You are a Senior Compliance Auditor for public procurement in Kenya. 
+      Your audit must be based on the **Public Procurement and Asset Disposal Act (PPADA) 2015 (Rev. 2022)** and the **2024 Amendments**.
       
       Procurement Context: ${JSON.stringify(input.procurementData)}
       Document Content: ${input.documentText}
       
-      Apply the following official rules/thresholds (Guideline 1 of 2024):
-      1. **Micro Procurement**: Max UGX 5 Million (or 10M if delegated).
-      2. **Restricted Bidding**: 
-         - Supplies: UGX 5M to 200M. 
-         - Works: UGX 200M to 400M.
-      3. **Open Bidding**: Required for values exceeding Restricted Bidding thresholds.
-      4. **Bidding Periods**: 
-         - Open Domestic: 15 working days.
-         - Open International: 20 working days.
-      5. **Advance Payments**: Generally capped at 30% of contract price.
-      6. **Local Content**: Check for 15% reservation for Women, Youth, and PWDs if applicable (for values < 30M).
+      Review the document against these specific Kenyan rules:
+      1. **Local Preference**: Contracts < KES 1 Billion must be awarded exclusively to local firms (2024 Amendment).
+      2. **AGPO Reservation**: 30% of procurement budget must be reserved for Women, Youth, and PWDs (Section 157).
+      3. **Local Content**: Minimum of 40% local content requirement for goods/services.
+      4. **Procurement Methods**:
+         - Open Tendering: Preferred method for all standard procurements.
+         - Request for Quotations (RFQ): Generally up to KES 3 Million.
+         - Restricted Tendering: Only for specialized/complex items with limited suppliers.
+         - Low-Value Procurement: Up to KES 50,000.
+      5. **Advance Payment**: Generally capped at 20% (Section 147-148).
+      6. **Conflict of Interest**: Strict disclosure required (Section 66).
+      7. **Declaration**: Must include a non-corruption declaration (Section 62).
       
       Tasks:
       1. Calculate an overall compliance score (0-100).
-      2. Evaluate based on the thresholds above.
-      3. For each check, provide a status (Pass/Fail/Warning), a finding from the text, and a recommendation.
+      2. Check if the procurement method aligns with the thresholds.
+      3. Verify if AGPO or Local Preference rules are applied if applicable.
+      4. For each check, provide a status (Pass/Fail/Warning), a finding from the text, and a recommendation based on the Kenya PPADA.
       
       Return a structured JSON object matching the output schema.`,
         });
