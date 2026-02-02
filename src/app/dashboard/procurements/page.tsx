@@ -1,48 +1,30 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Plus, Search, Filter, MoreHorizontal, FileDown } from "lucide-react"
 import Link from "next/link"
-
-const procurements = [
-    {
-        id: "PRQ-2024-001",
-        title: "Supply of High-End Workstations",
-        method: "Open Tender",
-        value: "$450,000",
-        status: "Approved",
-        risk: "Low",
-        date: "2024-03-01"
-    },
-    {
-        id: "PRQ-2024-002",
-        title: "Network Infrastructure Upgrade",
-        method: "Restricted",
-        value: "$1.2M",
-        status: "Pending",
-        risk: "Medium",
-        date: "2024-03-05"
-    },
-    {
-        id: "PRQ-2024-003",
-        title: "Cloud Services Subscription",
-        method: "Direct Procurement",
-        value: "$280,000",
-        status: "Queried",
-        risk: "High",
-        date: "2024-03-10"
-    },
-    {
-        id: "PRQ-2024-004",
-        title: "Security System Maintenance",
-        method: "Open Tender",
-        value: "$150,000",
-        status: "Rejected",
-        risk: "Critical",
-        date: "2024-03-12"
-    }
-]
+import { getProcurementsAction } from "@/app/actions/procurement-actions"
 
 export default function ProcurementsPage() {
+    const [items, setItems] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        async function fetchProcurements() {
+            try {
+                const result = await getProcurementsAction()
+                if (result.success) {
+                    setItems(result.items || [])
+                }
+            } catch (err) {
+                console.error("Failed to fetch procurements:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchProcurements()
+    }, [])
+
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
@@ -94,7 +76,21 @@ export default function ProcurementsPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-200">
-                        {procurements.map((item) => (
+                        {loading ? (
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <tr key={i} className="animate-pulse">
+                                    <td colSpan={7} className="px-6 py-12 bg-zinc-50/20">
+                                        <div className="h-4 bg-zinc-100 rounded w-full"></div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : items.length === 0 ? (
+                            <tr>
+                                <td colSpan={7} className="px-6 py-12 text-center text-zinc-500 italic">
+                                    No procurements found. Create one to get started.
+                                </td>
+                            </tr>
+                        ) : items.map((item) => (
                             <tr key={item.id} className="group hover:bg-zinc-50 transition-colors cursor-pointer">
                                 <td className="px-6 py-4">
                                     <span className="font-mono text-xs font-medium text-zinc-500">{item.id}</span>
@@ -105,7 +101,7 @@ export default function ProcurementsPage() {
                                         <span className="text-xs text-zinc-500">{item.method}</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-sm font-medium text-zinc-900">{item.value}</td>
+                                <td className="px-6 py-4 text-sm font-medium text-zinc-900">{typeof item.value === 'number' ? `KES ${item.value.toLocaleString()}` : item.value}</td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.status === "Approved" ? "bg-emerald-100 text-emerald-700" :
                                         item.status === "Pending" ? "bg-blue-100 text-blue-700" :
@@ -126,9 +122,9 @@ export default function ProcurementsPage() {
                                 </td>
                                 <td className="px-6 py-4 text-sm text-zinc-500 font-medium">{item.date}</td>
                                 <td className="px-6 py-4 text-right">
-                                    <button className="rounded-md p-1.5 hover:bg-zinc-200 transition-colors">
+                                    <Link href={`/dashboard/procurements/${item.docId}`} className="rounded-md p-1.5 hover:bg-zinc-200 transition-colors inline-block">
                                         <MoreHorizontal className="h-4 w-4 text-zinc-500" />
-                                    </button>
+                                    </Link>
                                 </td>
                             </tr>
                         ))}
@@ -136,7 +132,7 @@ export default function ProcurementsPage() {
                 </table>
                 <div className="border-t border-zinc-200 bg-zinc-50 px-6 py-4">
                     <div className="flex items-center justify-between text-sm text-zinc-500">
-                        <span>Showing 4 of 48 procurements</span>
+                        <span>Showing {items.length} procurements</span>
                         <div className="flex items-center gap-2">
                             <button disabled className="rounded border border-zinc-200 bg-white px-3 py-1 text-sm font-medium text-zinc-400">Previous</button>
                             <button className="rounded border border-zinc-200 bg-white px-3 py-1 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Next</button>

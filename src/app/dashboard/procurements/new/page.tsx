@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { analyzeDocumentAction } from "@/app/actions/analyze-document"
+import { createProcurementAction } from "@/app/actions/procurement-actions"
 
 type ComplianceCheck = {
     rule: string;
@@ -79,10 +80,22 @@ export default function NewProcurementPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        setTimeout(() => {
+        try {
+            const result = await createProcurementAction({
+                ...formData,
+                value: Number(formData.value),
+                analysis: analysisResult
+            })
+            if (result.success) {
+                router.push("/dashboard/procurements")
+            } else {
+                alert("Error saving: " + result.error)
+            }
+        } catch (err) {
+            console.error(err)
+        } finally {
             setLoading(false)
-            router.push("/dashboard/procurements")
-        }, 1500)
+        }
     }
 
     return (
@@ -335,7 +348,7 @@ export default function NewProcurementPage() {
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className="text-xs font-bold text-zinc-900">{check.rule}</span>
                                                     <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
-                                                            check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
+                                                        check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
                                                         }`}>
                                                         {check.status === "Pass" ? <CheckCircle className="h-3 w-3" /> : check.status === "Warning" ? <AlertTriangle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
                                                         {check.status}
