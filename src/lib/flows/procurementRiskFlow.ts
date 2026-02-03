@@ -3,8 +3,8 @@ import { googleAI, gemini15Flash } from "@genkit-ai/googleai";
 import { z } from "zod";
 
 export const ai = genkit({
-    plugins: [googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY, apiVersion: "v1" })],
-    model: gemini15Flash,
+    plugins: [googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY })],
+    model: "gemini-1.5-flash-latest",
 });
 
 export const procurementRiskFlow = ai.defineFlow(
