@@ -30,7 +30,7 @@ export const complianceCheckFlow = ai.defineFlow(
             prompt: `You are a Senior Compliance Auditor for public procurement in Kenya. 
       Your audit must be based on the **Public Procurement and Asset Disposal Act (PPADA) 2015 (Rev. 2022)** and the **2024 Amendments**.
       
-      Document Content: ${input.documentText}
+      Document Content: ${input.documentText.slice(0, 30000)}
       Existing Context: ${JSON.stringify(input.procurementData || {})}
 
       Tasks:
