@@ -4,7 +4,7 @@ import { z } from "zod";
 
 export const ai = genkit({
     plugins: [googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY, apiVersion: "v1" })],
-    model: "gemini-1.5-flash",
+    model: gemini15Flash,
 });
 
 export const complianceCheckFlow = ai.defineFlow(
