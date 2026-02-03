@@ -1,5 +1,5 @@
 import { genkit, z } from "genkit";
-import { googleAI } from "@genkit-ai/google-genai";
+import { googleAI, gemini20Flash } from "@genkit-ai/google-genai";
 
 export const ai = genkit({
     plugins: [
@@ -7,8 +7,8 @@ export const ai = genkit({
             apiKey: process.env.GOOGLE_GENAI_API_KEY,
         })
     ],
-    // The google-genai plugin uses 'gemini-1.5-flash' but defaults to stable v1 if possible
-    model: "googleai/gemini-1.5-flash",
+    // Switching to Gemini 2.0 Flash as requested
+    model: gemini20Flash,
 });
 
 export { z };
