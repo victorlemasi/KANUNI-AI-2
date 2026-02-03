@@ -1,6 +1,5 @@
-import { genkit } from "genkit";
+import { genkit, z } from "genkit";
 import { googleAI, gemini15Flash } from "@genkit-ai/googleai";
-import { z } from "zod";
 
 export const ai = genkit({
     plugins: [googleAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY })],
