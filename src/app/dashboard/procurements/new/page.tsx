@@ -14,7 +14,8 @@ import {
     AlertTriangle,
     Info,
     ShieldCheck,
-    ClipboardCheck
+    ClipboardCheck,
+    Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { analyzeDocumentAction } from "@/app/actions/analyze-document"
@@ -27,7 +28,15 @@ type ComplianceCheck = {
     recommendation: string;
 }
 
+type ExtractedMetadata = {
+    title: string;
+    method: string;
+    value: number;
+    currency: string;
+}
+
 type AnalysisResult = {
+    extractedMetadata: ExtractedMetadata;
     isCompliant: boolean;
     complianceScore: number;
     summary: string;
@@ -44,25 +53,35 @@ export default function NewProcurementPage() {
         title: "",
         method: "Open Tender",
         value: "",
-        currency: "USD"
+        currency: "KES",
+        description: ""
     })
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0]
             setFile(selectedFile)
-
             setAnalyzing(true)
+
             const data = new FormData()
             data.append("file", selectedFile)
-            data.append("title", formData.title)
-            data.append("method", formData.method)
-            data.append("value", formData.value)
 
             try {
                 const result = await analyzeDocumentAction(data)
                 if (result.success) {
-                    setAnalysisResult(result.analysis as AnalysisResult)
+                    const analysis = result.analysis as AnalysisResult
+                    setAnalysisResult(analysis)
+
+                    // Auto-fill form from AI extraction
+                    setLocalFormData({
+                        title: analysis.extractedMetadata.title || "",
+                        method: analysis.extractedMetadata.method || "Open Tender",
+                        value: analysis.extractedMetadata.value?.toString() || "",
+                        currency: analysis.extractedMetadata.currency || "KES",
+                        description: analysis.summary
+                    })
+                } else {
+                    alert(result.error || "Analysis failed")
                 }
             } catch (err) {
                 console.error(err)
@@ -75,6 +94,13 @@ export default function NewProcurementPage() {
     const removeFile = () => {
         setFile(null)
         setAnalysisResult(null)
+        setLocalFormData({
+            title: "",
+            method: "Open Tender",
+            value: "",
+            currency: "KES",
+            description: ""
+        })
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -108,280 +134,268 @@ export default function NewProcurementPage() {
                     <ArrowLeft className="h-4 w-4 text-zinc-600" />
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900">New Procurement</h1>
-                    <p className="text-zinc-500">Initiate a new procurement process with integrated AI document analysis.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Document Analysis</h1>
+                    <p className="text-zinc-500">Upload a document to automatically extract data and verify Kenyan law compliance.</p>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid gap-10 lg:grid-cols-3">
-                <div className="lg:col-span-2 space-y-10">
-                    <div className="rounded-xl border border-zinc-200 bg-white p-8 shadow-sm space-y-8">
-                        <section className="space-y-6">
-                            <h3 className="text-lg font-semibold text-zinc-900 border-b border-zinc-100 pb-2">Basic Information</h3>
-                            <div className="grid gap-6 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-zinc-700">Procurement Title</label>
-                                    <input
-                                        required
-                                        value={formData.title}
-                                        onChange={(e) => setLocalFormData({ ...formData, title: e.target.value })}
-                                        type="text"
-                                        placeholder="e.g. Supply of IT Infrastructure"
-                                        className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-950 transition-all"
-                                    />
+            <div className="space-y-8">
+                {/* Step 1: Document Upload */}
+                <section className="bg-white rounded-2xl border border-zinc-200 p-8 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="h-8 w-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white">
+                            <Upload className="h-4 w-4" />
+                        </div>
+                        <h2 className="text-lg font-bold text-zinc-900">1. Upload Document</h2>
+                    </div>
+
+                    {!file ? (
+                        <div
+                            className="border-2 border-dashed border-zinc-200 rounded-xl p-16 flex flex-col items-center justify-center bg-zinc-50 hover:bg-zinc-100 transition-all cursor-pointer group"
+                            onClick={() => document.getElementById('file-upload')?.click()}
+                        >
+                            <div className="h-20 w-20 rounded-full bg-white shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                <Upload className="h-8 w-8 text-zinc-400 group-hover:text-zinc-900" />
+                            </div>
+                            <p className="text-xl font-black text-zinc-900">Select PDF, DOCX, or TXT</p>
+                            <p className="text-sm text-zinc-500 mt-2 max-w-xs text-center leading-relaxed">
+                                AI will automatically extract the procurement title, method, and value while auditing compliance.
+                            </p>
+                            <input
+                                id="file-upload"
+                                type="file"
+                                className="hidden"
+                                accept=".pdf,.docx,.txt"
+                                onChange={handleFileChange}
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-between p-6 rounded-2xl border border-zinc-200 bg-zinc-50/50 shadow-inner">
+                            <div className="flex items-center gap-4">
+                                <div className="h-14 w-14 rounded-xl bg-white shadow-md flex items-center justify-center">
+                                    <File className="h-8 w-8 text-zinc-900" />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-zinc-700">Procurement Method</label>
-                                    <select
-                                        value={formData.method}
-                                        onChange={(e) => setLocalFormData({ ...formData, method: e.target.value })}
-                                        className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-950 transition-all bg-white"
-                                    >
-                                        <option>Open Tender</option>
-                                        <option>Restricted Tender</option>
-                                        <option>Direct Procurement</option>
-                                        <option>Request for Quotation</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-2 sm:col-span-2">
-                                    <label className="text-sm font-bold text-zinc-700">Description</label>
-                                    <textarea
-                                        rows={4}
-                                        placeholder="Provide detailed scope of work..."
-                                        className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-950 transition-all resize-none"
-                                    />
+                                <div>
+                                    <p className="text-base font-black text-zinc-900">{file.name}</p>
+                                    <p className="text-sm text-zinc-400 font-medium">{(file.size / 1024).toFixed(1)} KB • Document Ready</p>
                                 </div>
                             </div>
-                        </section>
+                            {!analyzing && (
+                                <button
+                                    type="button"
+                                    onClick={removeFile}
+                                    className="p-3 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 transition-colors rounded-full"
+                                >
+                                    <X className="h-6 w-6" />
+                                </button>
+                            )}
+                            {analyzing && (
+                                <div className="flex items-center gap-3 text-zinc-600 font-bold bg-white px-6 py-2 rounded-xl shadow-sm border border-zinc-100">
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <span>AI Analysis...</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </section>
 
-                        <section className="space-y-6 pt-4">
-                            <h3 className="text-lg font-semibold text-zinc-900 border-b border-zinc-100 pb-2">Financials & Vendor</h3>
-                            <div className="grid gap-6 sm:grid-cols-3">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-zinc-700">Estimated Value</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">$</span>
-                                        <input
-                                            required
-                                            value={formData.value}
-                                            onChange={(e) => setLocalFormData({ ...formData, value: e.target.value })}
-                                            type="number"
-                                            placeholder="0.00"
-                                            className="w-full rounded-lg border border-zinc-200 pl-8 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-950 transition-all"
-                                        />
+                {/* Step 2: Analysis & Form (Only shown when file is uploaded or analyzed) */}
+                {(file || analysisResult) && (
+                    <form onSubmit={handleSubmit} className="grid gap-10 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                        <div className="lg:col-span-2 space-y-10">
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm space-y-10">
+                                <section className="space-y-8">
+                                    <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white">
+                                                <Sparkles className="h-4 w-4" />
+                                            </div>
+                                            <h3 className="text-lg font-bold text-zinc-900">2. Review Extracted Data</h3>
+                                        </div>
+                                        {analysisResult && (
+                                            <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 uppercase tracking-widest">
+                                                AI PRE-FILLED
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="grid gap-8 sm:grid-cols-2">
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-black text-zinc-400 uppercase tracking-widest">Procurement Title</label>
+                                            <input
+                                                required
+                                                value={formData.title}
+                                                onChange={(e) => setLocalFormData({ ...formData, title: e.target.value })}
+                                                type="text"
+                                                className="w-full rounded-xl border border-zinc-200 px-5 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-zinc-100 transition-all placeholder:text-zinc-300"
+                                            />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-black text-zinc-400 uppercase tracking-widest">Procurement Method</label>
+                                            <select
+                                                value={formData.method}
+                                                onChange={(e) => setLocalFormData({ ...formData, method: e.target.value })}
+                                                className="w-full rounded-xl border border-zinc-200 px-5 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-zinc-100 transition-all bg-white"
+                                            >
+                                                <option>Open Tender</option>
+                                                <option>Restricted Tender</option>
+                                                <option>Direct Procurement</option>
+                                                <option>Request for Quotation</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-black text-zinc-400 uppercase tracking-widest">Estimated Value</label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-sm">KES</span>
+                                                <input
+                                                    required
+                                                    value={formData.value}
+                                                    onChange={(e) => setLocalFormData({ ...formData, value: e.target.value })}
+                                                    type="number"
+                                                    className="w-full rounded-xl border border-zinc-200 pl-14 pr-5 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-zinc-100 transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-black text-zinc-400 uppercase tracking-widest">Summary</label>
+                                            <textarea
+                                                value={formData.description}
+                                                onChange={(e) => setLocalFormData({ ...formData, description: e.target.value })}
+                                                className="w-full rounded-xl border border-zinc-200 px-5 py-3 text-sm font-medium outline-none focus:ring-4 focus:ring-zinc-100 transition-all h-24 resize-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-6 p-10 bg-zinc-900 rounded-3xl shadow-2xl overflow-hidden relative group">
+                                <div className="absolute top-0 right-0 p-20 bg-zinc-800 rounded-full blur-3xl opacity-20 -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-1000"></div>
+                                <Link
+                                    href="/dashboard/procurements"
+                                    className="px-6 py-2.5 text-sm font-bold text-zinc-400 hover:text-white transition-colors"
+                                >
+                                    Discard Request
+                                </Link>
+                                <button
+                                    disabled={loading || analyzing}
+                                    type="submit"
+                                    className="flex items-center gap-3 rounded-2xl bg-white px-12 py-4 text-sm font-black text-zinc-900 shadow-xl hover:bg-zinc-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            SAVING REPORT...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="h-5 w-5" />
+                                            SAVE ANALYSIS REPORT
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-8">
+                            {/* AI Side Panel */}
+                            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sticky top-8">
+                                <div className="flex items-center gap-3 mb-8">
+                                    <div className="h-10 w-10 rounded-2xl bg-zinc-900 flex items-center justify-center text-white shadow-lg">
+                                        <ShieldCheck className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-zinc-900 tracking-tight">AI Compliance</h3>
+                                        <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Kenya PPADA 2024</p>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-zinc-700">Currency</label>
-                                    <select
-                                        value={formData.currency}
-                                        onChange={(e) => setLocalFormData({ ...formData, currency: e.target.value })}
-                                        className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-950 transition-all bg-white"
-                                    >
-                                        <option>USD</option>
-                                        <option>EUR</option>
-                                        <option>UGX</option>
-                                        <option>KES</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-zinc-700">Vendor (Search)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Tax ID or Name"
-                                        className="w-full rounded-lg border border-zinc-200 px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-950 transition-all"
-                                    />
-                                </div>
-                            </div>
-                        </section>
 
-                        <section className="space-y-6 pt-4">
-                            <h3 className="text-lg font-semibold text-zinc-900 border-b border-zinc-100 pb-2">Procurement Documents</h3>
-                            <div className="space-y-4">
-                                {!file ? (
-                                    <div
-                                        className="border-2 border-dashed border-zinc-200 rounded-xl p-10 flex flex-col items-center justify-center bg-zinc-50 hover:bg-zinc-100 transition-colors cursor-pointer group"
-                                        onClick={() => document.getElementById('file-upload')?.click()}
-                                    >
-                                        <div className="h-16 w-16 rounded-full bg-white shadow-md flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                            <Upload className="h-6 w-6 text-zinc-400" />
+                                {analyzing ? (
+                                    <div className="py-20 text-center space-y-8">
+                                        <div className="relative h-24 w-24 mx-auto">
+                                            <div className="absolute inset-0 rounded-full border-4 border-zinc-50"></div>
+                                            <div className="absolute inset-0 rounded-full border-4 border-zinc-900 border-t-transparent animate-spin"></div>
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <Sparkles className="h-8 w-8 text-zinc-200 animate-pulse" />
+                                            </div>
                                         </div>
-                                        <p className="text-base font-bold text-zinc-900">Upload Tender Document</p>
-                                        <p className="text-sm text-zinc-500 mt-2">Gemini AI will automatically extract and analyze its compliance.</p>
-                                        <input
-                                            id="file-upload"
-                                            type="file"
-                                            className="hidden"
-                                            accept=".pdf"
-                                            onChange={handleFileChange}
-                                        />
+                                        <div className="space-y-2">
+                                            <p className="text-sm font-black text-zinc-900">Gemini is checking rules...</p>
+                                            <p className="text-xs text-zinc-400 font-medium">Verifying against Kenyan Law</p>
+                                        </div>
+                                    </div>
+                                ) : analysisResult ? (
+                                    <div className="space-y-10">
+                                        <div className="flex items-center justify-center py-6 bg-zinc-50 rounded-3xl border border-zinc-100 shadow-inner">
+                                            <div className="relative h-32 w-32">
+                                                <svg className="h-full w-full" viewBox="0 0 36 36">
+                                                    <path
+                                                        className="text-white"
+                                                        strokeDasharray="100, 100"
+                                                        strokeWidth="2.5"
+                                                        stroke="currentColor"
+                                                        fill="none"
+                                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    />
+                                                    <path
+                                                        className={analysisResult.complianceScore > 70 ? "text-emerald-500" : analysisResult.complianceScore > 40 ? "text-yellow-500" : "text-rose-500"}
+                                                        strokeDasharray={`${analysisResult.complianceScore}, 100`}
+                                                        strokeWidth="2.5"
+                                                        strokeLinecap="round"
+                                                        stroke="currentColor"
+                                                        fill="none"
+                                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                    <span className="text-4xl font-black text-zinc-900">{analysisResult.complianceScore}</span>
+                                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Health</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Rule Violations & Findings</p>
+                                            <div className="space-y-4">
+                                                {analysisResult.checks.map((check, idx) => (
+                                                    <div key={idx} className="p-5 rounded-2xl border border-zinc-100 bg-zinc-50/30 hover:bg-zinc-50 transition-all group">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-xs font-black text-zinc-900">{check.rule}</span>
+                                                            <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
+                                                                check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
+                                                                }`}>
+                                                                {check.status === "Pass" ? <CheckCircle className="h-3 w-3" /> : check.status === "Warning" ? <AlertTriangle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                                                                {check.status}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[12px] text-zinc-600 leading-snug mb-3 font-medium">
+                                                            {check.finding}
+                                                        </p>
+                                                        <div className="flex items-start gap-2 pt-3 border-t border-zinc-100">
+                                                            <ClipboardCheck className="h-3 w-3 text-zinc-300 shrink-0 mt-0.5" />
+                                                            <p className="text-[10px] text-zinc-400 italic leading-snug">
+                                                                {check.recommendation}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center justify-between p-5 rounded-xl border border-zinc-200 bg-white shadow-sm">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 rounded-lg bg-zinc-100 flex items-center justify-center">
-                                                <File className="h-6 w-6 text-zinc-900" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-zinc-900">{file.name}</p>
-                                                <p className="text-xs text-zinc-500">{(file.size / 1024).toFixed(1)} KB • PDF Document</p>
-                                            </div>
+                                    <div className="py-20 text-center space-y-6">
+                                        <div className="bg-zinc-50 rounded-full h-16 w-16 mx-auto flex items-center justify-center shadow-inner">
+                                            <Info className="h-8 w-8 text-zinc-200" />
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={removeFile}
-                                            className="p-2 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 transition-colors rounded-full"
-                                        >
-                                            <X className="h-5 w-5" />
-                                        </button>
+                                        <p className="text-sm text-zinc-400 italic leading-relaxed font-medium">
+                                            Awaiting document upload to start compliance audit.
+                                        </p>
                                     </div>
                                 )}
                             </div>
-                        </section>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-4 p-8 bg-zinc-50 rounded-xl border border-zinc-200 border-dashed">
-                        <Link
-                            href="/dashboard/procurements"
-                            className="px-6 py-2.5 text-sm font-bold text-zinc-600 hover:text-zinc-900 transition-colors"
-                        >
-                            Discard Request
-                        </Link>
-                        <button
-                            disabled={loading}
-                            type="submit"
-                            className="flex items-center gap-2 rounded-xl bg-zinc-900 px-10 py-3 text-sm font-bold text-white shadow-xl hover:bg-zinc-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    Creating...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="h-4 w-4" />
-                                    Initiate Procurement
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </div>
-
-                <div className="space-y-8">
-                    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm sticky top-8">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="h-10 w-10 rounded-xl bg-zinc-900 flex items-center justify-center text-white">
-                                <ShieldCheck className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-zinc-900">AI Analyzer</h3>
-                                <p className="text-xs text-zinc-500">Document Compliance Health</p>
-                            </div>
                         </div>
-
-                        {!file ? (
-                            <div className="py-12 text-center space-y-4">
-                                <div className="bg-zinc-50 rounded-full h-16 w-16 mx-auto flex items-center justify-center">
-                                    <Info className="h-8 w-8 text-zinc-300" />
-                                </div>
-                                <p className="text-sm text-zinc-400 italic leading-relaxed">
-                                    Upload a procurement document to see the real-time AI compliance analyzer in action.
-                                </p>
-                            </div>
-                        ) : analyzing ? (
-                            <div className="py-12 text-center space-y-6">
-                                <div className="relative h-20 w-20 mx-auto">
-                                    <div className="absolute inset-0 rounded-full border-4 border-zinc-100"></div>
-                                    <div className="absolute inset-0 rounded-full border-4 border-zinc-900 border-t-transparent animate-spin"></div>
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-sm font-bold text-zinc-900">Gemini is analyzing...</p>
-                                    <p className="text-xs text-zinc-400">Extracting text and verifying rules</p>
-                                </div>
-                            </div>
-                        ) : analysisResult ? (
-                            <div className="space-y-8">
-                                <div className="flex items-center justify-center py-4">
-                                    <div className="relative h-32 w-32">
-                                        <svg className="h-full w-full" viewBox="0 0 36 36">
-                                            <path
-                                                className="text-zinc-100"
-                                                strokeDasharray="100, 100"
-                                                strokeWidth="3"
-                                                stroke="currentColor"
-                                                fill="none"
-                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                            />
-                                            <path
-                                                className={analysisResult.complianceScore > 70 ? "text-emerald-500" : analysisResult.complianceScore > 40 ? "text-yellow-500" : "text-rose-500"}
-                                                strokeDasharray={`${analysisResult.complianceScore}, 100`}
-                                                strokeWidth="3"
-                                                strokeLinecap="round"
-                                                stroke="currentColor"
-                                                fill="none"
-                                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                            />
-                                        </svg>
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className="text-3xl font-black text-zinc-900">{analysisResult.complianceScore}</span>
-                                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Health</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className={`p-4 rounded-xl border ${analysisResult.isCompliant ? "border-emerald-100 bg-emerald-50" : "border-rose-100 bg-rose-50"
-                                    }`}>
-                                    <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${analysisResult.isCompliant ? "text-emerald-700" : "text-rose-700"
-                                        }`}>
-                                        AI Summary
-                                    </p>
-                                    <p className="text-xs text-zinc-700 leading-relaxed font-medium">
-                                        {analysisResult.summary}
-                                    </p>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Rule-by-rule Analysis</p>
-                                    <div className="space-y-3">
-                                        {analysisResult.checks.map((check, idx) => (
-                                            <div key={idx} className="p-4 rounded-xl border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 transition-colors cursor-default">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="text-xs font-bold text-zinc-900">{check.rule}</span>
-                                                    <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
-                                                        check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
-                                                        }`}>
-                                                        {check.status === "Pass" ? <CheckCircle className="h-3 w-3" /> : check.status === "Warning" ? <AlertTriangle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                                                        {check.status}
-                                                    </span>
-                                                </div>
-                                                <p className="text-[11px] text-zinc-600 leading-normal mb-2">
-                                                    {check.finding}
-                                                </p>
-                                                <div className="flex items-start gap-2 pt-2 border-t border-zinc-100">
-                                                    <ClipboardCheck className="h-3 w-3 text-zinc-400 shrink-0 mt-0.5" />
-                                                    <p className="text-[10px] text-zinc-500 italic">
-                                                        {check.recommendation}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        ) : null}
-                    </div>
-
-                    <div className="rounded-xl border-2 border-dashed border-zinc-200 p-6 text-center bg-zinc-50/50">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                            <Info className="h-4 w-4 text-zinc-400" />
-                            <span className="text-xs font-bold text-zinc-500 uppercase">Expert Mode</span>
-                        </div>
-                        <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                            Analysis is generated by Gemini 1.5 Flash using context from the current form data and the uploaded document text.
-                        </p>
-                    </div>
-                </div>
-            </form>
+                    </form>
+                )}
+            </div>
         </div>
     )
 }

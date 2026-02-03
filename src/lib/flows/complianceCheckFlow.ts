@@ -11,10 +11,16 @@ export const complianceCheckFlow = ai.defineFlow(
     {
         name: "complianceCheckFlow",
         inputSchema: z.object({
-            procurementData: z.any(),
+            procurementData: z.any().optional(),
             documentText: z.string(),
         }),
         outputSchema: z.object({
+            extractedMetadata: z.object({
+                title: z.string().describe("The identified procurement title"),
+                method: z.string().describe("The procurement method identified (e.g., Open Tender, RFQ)"),
+                value: z.number().describe("The estimated contract value"),
+                currency: z.string().describe("The currency code (e.g., KES, USD)"),
+            }),
             isCompliant: z.boolean(),
             complianceScore: z.number(),
             summary: z.string(),
@@ -31,27 +37,26 @@ export const complianceCheckFlow = ai.defineFlow(
             prompt: `You are a Senior Compliance Auditor for public procurement in Kenya. 
       Your audit must be based on the **Public Procurement and Asset Disposal Act (PPADA) 2015 (Rev. 2022)** and the **2024 Amendments**.
       
-      Procurement Context: ${JSON.stringify(input.procurementData)}
       Document Content: ${input.documentText}
-      
-      Review the document against these specific Kenyan rules:
-      1. **Local Preference**: Contracts < KES 1 Billion must be awarded exclusively to local firms (2024 Amendment).
-      2. **AGPO Reservation**: 30% of procurement budget must be reserved for Women, Youth, and PWDs (Section 157).
-      3. **Local Content**: Minimum of 40% local content requirement for goods/services.
-      4. **Procurement Methods**:
-         - Open Tendering: Preferred method for all standard procurements.
-         - Request for Quotations (RFQ): Generally up to KES 3 Million.
-         - Restricted Tendering: Only for specialized/complex items with limited suppliers.
-         - Low-Value Procurement: Up to KES 50,000.
-      5. **Advance Payment**: Generally capped at 20% (Section 147-148).
-      6. **Conflict of Interest**: Strict disclosure required (Section 66).
-      7. **Declaration**: Must include a non-corruption declaration (Section 62).
-      
+      Existing Context: ${JSON.stringify(input.procurementData || {})}
+
       Tasks:
-      1. Calculate an overall compliance score (0-100).
-      2. Check if the procurement method aligns with the thresholds.
-      3. Verify if AGPO or Local Preference rules are applied if applicable.
-      4. For each check, provide a status (Pass/Fail/Warning), a finding from the text, and a recommendation based on the Kenya PPADA.
+      1. **Extract Metadata**: Identify the Procurement Title, Method, Estimated Value, and Currency directly from the document. 
+         - If the document is an RFQ, the method is "Request for Quotation".
+         - If it mentions a public tender, it's "Open Tender".
+         - If value is not found, use 0 but flag it in the summary.
+      
+      2. **Compliance Audit**: Review the document against these specific Kenyan rules:
+         - **Local Preference**: Contracts < KES 1 Billion must be awarded exclusively to local firms (2024 Amendment).
+         - **AGPO Reservation**: 30% of procurement budget must be reserved for Women, Youth, and PWDs (Section 157).
+         - **Local Content**: Minimum of 40% local content requirement.
+         - **Procurement Methods**: Open (> KES 3M), RFQ (< KES 3M), Low-Value (< KES 50k).
+         - **Advance Payment**: Capped at 20% (Section 147-148).
+         - **Declaration**: Must include a non-corruption declaration (Section 62).
+      
+      3. **Scoring**:
+         - Calculate an overall compliance score (0-100).
+         - For each check, provide status (Pass/Fail/Warning), finding from text, and recommendation.
       
       Return a structured JSON object matching the output schema.`,
         });

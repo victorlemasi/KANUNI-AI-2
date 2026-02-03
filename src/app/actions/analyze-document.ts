@@ -2,6 +2,7 @@
 
 import { complianceCheckFlow } from "@/lib/flows/complianceCheckFlow";
 import { PdfReader } from "pdfreader";
+import mammoth from "mammoth";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -14,29 +15,41 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     });
 }
 
+async function extractTextFromDocx(buffer: Buffer): Promise<string> {
+    const result = await mammoth.extractRawText({ buffer });
+    return result.value;
+}
+
 export async function analyzeDocumentAction(formData: FormData) {
-    const file = formData.get("file") as File;
-    if (!file) throw new Error("No file provided");
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-
     try {
-        const text = await extractTextFromPdf(buffer);
+        const file = formData.get("file") as File;
+        if (!file) throw new Error("No file provided");
 
-        const procurementData = {
-            title: formData.get("title") as string,
-            value: Number(formData.get("value")),
-            method: formData.get("method") as string,
-        };
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        let text = "";
 
-        const analysis = await complianceCheckFlow({
-            procurementData,
-            documentText: text,
+        if (file.name.endsWith(".pdf")) {
+            text = await extractTextFromPdf(buffer);
+        } else if (file.name.endsWith(".docx")) {
+            text = await extractTextFromDocx(buffer);
+        } else if (file.name.endsWith(".txt")) {
+            text = buffer.toString("utf-8");
+        } else {
+            throw new Error("Unsupported file format. Please upload PDF, DOCX, or TXT.");
+        }
+
+        if (!text || text.trim().length < 10) {
+            throw new Error("Document appears to be empty or unreadable.");
+        }
+
+        const result = await complianceCheckFlow({
+            documentText: text
         });
 
-        return { success: true, analysis };
+        return { success: true, analysis: result };
     } catch (error: any) {
-        console.error("PDF Parsing Error:", error);
+        console.error("Analysis Error:", error);
         return { success: false, error: error.message };
     }
 }
