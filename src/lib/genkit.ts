@@ -7,8 +7,8 @@ export const ai = genkit({
             apiKey: process.env.GOOGLE_GENAI_API_KEY,
         })
     ],
-    // Using string identifier to avoid export issues and target Gemini 2.0 Flash
-    model: "googleai/gemini-2.0-flash",
+    // Switching back to Gemini 1.5 Flash for better free tier support
+    model: "googleai/gemini-1.5-flash",
 });
 
 export { z };
