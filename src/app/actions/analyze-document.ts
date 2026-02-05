@@ -1,12 +1,11 @@
 "use server"
 
 import { complianceCheckFlow } from "@/lib/flows/complianceCheckFlow";
-// @ts-ignore
 import PDFParser from "pdf2json";
 import mammoth from "mammoth";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-    const pdfParser = new PDFParser(null, 1); // 1 = text only
+    const pdfParser = new PDFParser(null, true); // true = text only
 
     return new Promise((resolve, reject) => {
         pdfParser.on("pdfParser_dataError", (errData: any) => reject(new Error(errData.parserError)));
