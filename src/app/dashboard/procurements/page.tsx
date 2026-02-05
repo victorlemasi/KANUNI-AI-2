@@ -91,7 +91,7 @@ export default function ProcurementsPage() {
                                 </td>
                             </tr>
                         ) : items.map((item) => (
-                            <tr key={item.id} className="group hover:bg-zinc-50 transition-colors cursor-pointer">
+                            <tr key={item.docId} className="group hover:bg-zinc-50 transition-colors cursor-pointer">
                                 <td className="px-6 py-4">
                                     <span className="font-mono text-xs font-medium text-zinc-500">{item.id}</span>
                                 </td>
