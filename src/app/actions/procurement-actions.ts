@@ -17,6 +17,8 @@ export async function createProcurementAction(data: {
             risk: data.analysis?.isCompliant ? "Low" : "High", // Deriving risk from compliance
             date: new Date().toISOString().split('T')[0],
             createdAt: new Date(),
+            hasReport: !!data.analysis,
+            overall_compliance_score: data.analysis?.overall_compliance_score || 0
         });
 
         // Also save compliance check as a sub-collection or field
@@ -46,7 +48,9 @@ export async function getProcurementsAction() {
             status: doc.data().status,
             risk: doc.data().risk,
             date: doc.data().date,
-            docId: doc.id
+            docId: doc.id,
+            hasReport: doc.data().hasReport || false,
+            overall_compliance_score: doc.data().overall_compliance_score || 0
         }));
         return { success: true, items };
     } catch (error: any) {
@@ -73,6 +77,29 @@ export async function getProcurementByIdAction(docId: string) {
         };
     } catch (error: any) {
         console.error("Firestore Fetch Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+export async function getAuditReportsAction() {
+    try {
+        const snapshot = await adminDb.collection("procurements")
+            .where("hasReport", "==", true)
+            .orderBy("createdAt", "desc")
+            .get();
+
+        const items = snapshot.docs.map(doc => ({
+            id: doc.data().id,
+            title: doc.data().title,
+            method: doc.data().method,
+            value: doc.data().value,
+            date: doc.data().date,
+            docId: doc.id,
+            overall_compliance_score: doc.data().overall_compliance_score || 0,
+            summary: doc.data().analysis?.summary || ""
+        }));
+        return { success: true, items };
+    } catch (error: any) {
+        console.error("Firestore Fetch Error (Reports):", error);
         return { success: false, error: error.message };
     }
 }

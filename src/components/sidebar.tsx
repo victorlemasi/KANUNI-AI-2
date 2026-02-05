@@ -16,6 +16,7 @@ import {
 const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
     { name: "Procurements", icon: FileText, href: "/dashboard/procurements" },
+    { name: "Audit Reports", icon: ShieldCheck, href: "/dashboard/reports" },
     { name: "Alerts Center", icon: AlertTriangle, href: "/dashboard/alerts" },
     { name: "User Management", icon: Users, href: "/dashboard/users" },
     { name: "Compliance Rules", icon: ShieldCheck, href: "/dashboard/compliance" },
