@@ -1,18 +1,17 @@
 "use server"
 
 import { complianceCheckFlow } from "@/lib/flows/complianceCheckFlow";
-import { PdfReader } from "pdfreader";
+import pdf from "pdf-parse";
 import mammoth from "mammoth";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-    return new Promise((resolve, reject) => {
-        let text = "";
-        new PdfReader().parseBuffer(buffer, (err, item) => {
-            if (err) reject(err);
-            else if (!item) resolve(text);
-            else if (item.text) text += item.text + " ";
-        });
-    });
+    try {
+        const data = await pdf(buffer);
+        return data.text;
+    } catch (error) {
+        console.error("PDF Parsing Error:", error);
+        throw new Error("Failed to parse PDF document. Please ensure it is a valid PDF.");
+    }
 }
 
 async function extractTextFromDocx(buffer: Buffer): Promise<string> {

@@ -49,6 +49,7 @@ export default function NewProcurementPage() {
     const [analyzing, setAnalyzing] = useState(false)
     const [file, setFile] = useState<File | null>(null)
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+    const [error, setError] = useState<string | null>(null)
     const [formData, setLocalFormData] = useState({
         title: "",
         method: "Open Tender",
@@ -62,6 +63,8 @@ export default function NewProcurementPage() {
             const selectedFile = e.target.files[0]
             setFile(selectedFile)
             setAnalyzing(true)
+            setError(null)
+            setAnalysisResult(null)
 
             const data = new FormData()
             data.append("file", selectedFile)
@@ -81,10 +84,11 @@ export default function NewProcurementPage() {
                         description: analysis.summary
                     })
                 } else {
-                    alert(result.error || "Analysis failed")
+                    setError(result.error || "Analysis failed")
                 }
             } catch (err) {
                 console.error(err)
+                setError("An unexpected error occurred during analysis.")
             } finally {
                 setAnalyzing(false)
             }
@@ -94,6 +98,7 @@ export default function NewProcurementPage() {
     const removeFile = () => {
         setFile(null)
         setAnalysisResult(null)
+        setError(null)
         setLocalFormData({
             title: "",
             method: "Open Tender",
@@ -379,6 +384,24 @@ export default function NewProcurementPage() {
                                                     </div>
                                                 ))}
                                             </div>
+                                        </div>
+                                    </div>
+                                ) : error ? (
+                                    <div className="py-20 text-center space-y-6">
+                                        <div className="bg-rose-50 rounded-full h-16 w-16 mx-auto flex items-center justify-center shadow-inner">
+                                            <AlertCircle className="h-8 w-8 text-rose-500" />
+                                        </div>
+                                        <div className="space-y-2 px-4">
+                                            <p className="text-sm font-bold text-zinc-900">Analysis Failed</p>
+                                            <p className="text-sm text-zinc-500 italic leading-relaxed font-medium">
+                                                {error}
+                                            </p>
+                                            <button
+                                                onClick={() => document.getElementById('file-upload')?.click()}
+                                                className="text-xs font-bold text-rose-600 hover:underline mt-2"
+                                            >
+                                                Try Another Document
+                                            </button>
                                         </div>
                                     </div>
                                 ) : (
