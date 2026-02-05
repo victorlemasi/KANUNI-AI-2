@@ -8,8 +8,8 @@ export const ai = genkit({
             // Removing explicit apiVersion to allow plugin to select correct endpoint (likely v1beta for these new models)
         })
     ],
-    // Using 2.0 Flash-Lite as 1.5 is missing and 2.0 Flash hit quota limits
-    model: "googleai/gemini-2.0-flash-lite-001",
+    // Switching to 2.5 Flash which appears available in the key's model list
+    model: "googleai/gemini-2.5-flash",
 });
 
 export { z };
