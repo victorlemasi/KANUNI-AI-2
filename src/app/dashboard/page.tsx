@@ -10,48 +10,65 @@ import {
     ArrowDownRight
 } from "lucide-react"
 
-const stats = [
-    {
-        name: "Total Procurement Value",
-        value: "$142.5M",
-        change: "+12.5%",
-        trend: "up",
-        icon: TrendingUp,
-        description: "vs. last month"
-    },
-    {
-        name: "Average Risk Score",
-        value: "32.4",
-        change: "-4.2%",
-        trend: "down",
-        icon: ShieldAlert,
-        description: "Lower is better"
-    },
-    {
-        name: "Compliance Rate",
-        value: "94.2%",
-        change: "+2.1%",
-        trend: "up",
-        icon: CheckCircle2,
-        description: "of total items"
-    },
-    {
-        name: "Active Alerts",
-        value: "12",
-        change: "-3",
-        trend: "down",
-        icon: Activity,
-        description: "High priority"
-    }
-]
+import { getDashboardStatsAction, getAlertsAction } from "@/app/actions/procurement-actions"
 
 export default function DashboardPage() {
     const [loading, setLoading] = useState(true)
+    const [realStats, setRealStats] = useState<any>(null)
+    const [recentAlerts, setRecentAlerts] = useState<any[]>([])
 
     useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 2000)
-        return () => clearTimeout(timer)
+        async function fetchData() {
+            try {
+                const [statsRes, alertsRes] = await Promise.all([
+                    getDashboardStatsAction(),
+                    getAlertsAction()
+                ])
+                if (statsRes.success) setRealStats(statsRes.stats)
+                if (alertsRes.success) setRecentAlerts(alertsRes.items?.slice(0, 3) || [])
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchData()
     }, [])
+
+    const stats = [
+        {
+            name: "Total Procurement Value",
+            value: realStats ? `KES ${(realStats.totalValue / 1000000).toFixed(1)}M` : "0",
+            change: "+12.5%",
+            trend: "up",
+            icon: TrendingUp,
+            description: "vs. last month"
+        },
+        {
+            name: "Average Health Score",
+            value: realStats?.avgScore || "0",
+            change: "-4.2%",
+            trend: "down",
+            icon: ShieldAlert,
+            description: "Higher is better"
+        },
+        {
+            name: "Compliance Rate",
+            value: realStats ? `${realStats.complianceRate}%` : "0%",
+            change: "+2.1%",
+            trend: "up",
+            icon: CheckCircle2,
+            description: "of audited items"
+        },
+        {
+            name: "Active Alerts",
+            value: realStats?.activeAlerts || "0",
+            change: "-3",
+            trend: "down",
+            icon: Activity,
+            description: "High priority"
+        }
+    ]
 
     if (loading) {
         return (
@@ -128,7 +145,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="h-[300px] w-full flex items-end justify-between gap-2 px-2">
-                        {[45, 62, 38, 71, 55, 82, 65, 48, 92, 77, 85, 95].map((h, i) => (
+                        {(realStats?.normalizedSpend || new Array(12).fill(5)).map((h: number, i: number) => (
                             <div key={i} className="flex-1 flex flex-col items-center gap-2">
                                 <div
                                     className="w-full bg-zinc-900 rounded-t-sm transition-all hover:bg-zinc-700 cursor-pointer"
@@ -144,24 +161,27 @@ export default function DashboardPage() {
                     <h3 className="text-lg font-semibold text-zinc-900 mb-6">Risk Distribution</h3>
                     <div className="space-y-6">
                         {[
-                            { label: "Low Risk", value: 65, color: "bg-emerald-500" },
-                            { label: "Medium Risk", value: 20, color: "bg-yellow-500" },
-                            { label: "High Risk", value: 10, color: "bg-orange-500" },
-                            { label: "Critical Risk", value: 5, color: "bg-rose-500" }
-                        ].map((risk) => (
-                            <div key={risk.label} className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="font-medium text-zinc-700">{risk.label}</span>
-                                    <span className="text-zinc-500">{risk.value}%</span>
+                            { label: "Low Risk", key: "Low", color: "bg-emerald-500" },
+                            { label: "Medium Risk", key: "Medium", color: "bg-yellow-500" },
+                            { label: "High Risk", key: "High", color: "bg-orange-500" },
+                            { label: "Critical Risk", key: "Critical", color: "bg-rose-500" }
+                        ].map((risk) => {
+                            const value = realStats?.riskPercentages?.[risk.key] || 0;
+                            return (
+                                <div key={risk.label} className="space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="font-medium text-zinc-700">{risk.label}</span>
+                                        <span className="text-zinc-500">{value}%</span>
+                                    </div>
+                                    <div className="h-2 w-full rounded-full bg-zinc-100">
+                                        <div
+                                            className={`h-2 rounded-full ${risk.color}`}
+                                            style={{ width: `${value}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
-                                <div className="h-2 w-full rounded-full bg-zinc-100">
-                                    <div
-                                        className={`h-2 rounded-full ${risk.color}`}
-                                        style={{ width: `${risk.value}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     <div className="mt-8 rounded-lg bg-zinc-50 p-4 border border-zinc-100">
                         <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">AI Summary</h4>
@@ -177,52 +197,36 @@ export default function DashboardPage() {
                     <h3 className="text-lg font-semibold text-zinc-900">Recent High-Priority Alerts</h3>
                 </div>
                 <div className="divide-y divide-zinc-100">
-                    {[
-                        {
-                            id: "AL-102",
-                            type: "Price Anomaly",
-                            desc: "Unit price for 'Office Supplies' is 45% above historical average.",
-                            severity: "High",
-                            time: "2h ago"
-                        },
-                        {
-                            id: "AL-105",
-                            type: "Compliance Breach",
-                            desc: "Vendor 'Global Tech' has an expired Tax ID for current tender.",
-                            severity: "Critical",
-                            time: "5h ago"
-                        },
-                        {
-                            id: "AL-108",
-                            type: "High-Risk",
-                            desc: "Unusually fast turnaround for bid submission in 'Construction Phase 1'.",
-                            severity: "Medium",
-                            time: "12h ago"
-                        }
-                    ].map((alert) => (
-                        <div key={alert.id} className="flex items-center justify-between p-6 hover:bg-zinc-50 transition-colors">
-                            <div className="flex gap-4 items-start">
-                                <div className={`mt-1 h-2 w-2 rounded-full ${alert.severity === "Critical" ? "bg-rose-600" :
-                                    alert.severity === "High" ? "bg-orange-600" : "bg-yellow-600"
-                                    }`}></div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm font-semibold text-zinc-900">{alert.type}</span>
-                                        <span className="text-xs text-zinc-400 font-mono">{alert.id}</span>
+                    {recentAlerts.length === 0 ? (
+                        <div className="p-10 text-center text-zinc-400 italic text-sm font-medium">
+                            No high-priority alerts detected.
+                        </div>
+                    ) : (
+                        recentAlerts.map((alert) => (
+                            <div key={alert.docId} className="flex items-center justify-between p-6 hover:bg-zinc-50 transition-colors">
+                                <div className="flex gap-4 items-start">
+                                    <div className={`mt-1 h-2 w-2 rounded-full ${alert.severity === "Critical" ? "bg-rose-600" :
+                                        alert.severity === "High" ? "bg-orange-600" : "bg-yellow-600"
+                                        }`}></div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-semibold text-zinc-900">{alert.type}</span>
+                                            <span className="text-xs text-zinc-400 font-mono">{alert.procurementId}</span>
+                                        </div>
+                                        <p className="text-sm text-zinc-600 mt-1">{alert.title}</p>
                                     </div>
-                                    <p className="text-sm text-zinc-600 mt-1">{alert.desc}</p>
+                                </div>
+                                <div className="flex flex-col items-end gap-2 text-right min-w-[100px]">
+                                    <span className="text-xs text-zinc-400 font-medium">New</span>
+                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${alert.severity === "Critical" ? "bg-rose-100 text-rose-700" :
+                                        alert.severity === "High" ? "bg-orange-100 text-orange-700" : "bg-yellow-100 text-yellow-700"
+                                        }`}>
+                                        {alert.severity}
+                                    </span>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
-                                <span className="text-xs text-zinc-400 font-medium">{alert.time}</span>
-                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${alert.severity === "Critical" ? "bg-rose-100 text-rose-700" :
-                                    alert.severity === "High" ? "bg-orange-100 text-orange-700" : "bg-yellow-100 text-yellow-700"
-                                    }`}>
-                                    {alert.severity}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
                 <div className="bg-zinc-50 p-4 text-center border-t border-zinc-100">
                     <button className="text-sm font-semibold text-zinc-600 hover:text-zinc-900">
