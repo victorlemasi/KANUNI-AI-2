@@ -19,7 +19,7 @@ if (!admin.apps.length) {
     }
 }
 
-const adminDb = admin.firestore();
-const adminAuth = admin.auth();
+const adminDb = admin.apps.length ? admin.firestore() : {} as FirebaseFirestore.Firestore;
+const adminAuth = admin.apps.length ? admin.auth() : {} as admin.auth.Auth;
 
 export { adminDb, adminAuth };

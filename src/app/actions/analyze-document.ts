@@ -2,17 +2,22 @@
 
 import { complianceCheckFlow } from "@/lib/flows/complianceCheckFlow";
 // @ts-ignore
-const pdf = require("pdf-parse");
+import PDFParser from "pdf2json";
 import mammoth from "mammoth";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-    try {
-        const data = await pdf(buffer);
-        return data.text;
-    } catch (error) {
-        console.error("PDF Parsing Error:", error);
-        throw new Error("Failed to parse PDF document. Please ensure it is a valid PDF.");
-    }
+    const pdfParser = new PDFParser(null, 1); // 1 = text only
+
+    return new Promise((resolve, reject) => {
+        pdfParser.on("pdfParser_dataError", (errData: any) => reject(new Error(errData.parserError)));
+        pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+            // pdf2json returns URL-encoded text
+            const rawText = pdfParser.getRawTextContent();
+            resolve(rawText);
+        });
+
+        pdfParser.parseBuffer(buffer);
+    });
 }
 
 async function extractTextFromDocx(buffer: Buffer): Promise<string> {
