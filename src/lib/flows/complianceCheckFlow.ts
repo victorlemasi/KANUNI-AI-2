@@ -52,8 +52,9 @@ export const complianceCheckFlow = ai.defineFlow(
          - For each check, provide status (Pass/Fail/Warning), finding from text, and recommendation.
       
       Return a structured JSON object matching the output schema.`,
+            output: { format: 'json' }, // Ensure JSON format for structured output
         });
 
-        return response.output() as any;
+        return response.output as any;
     }
 );

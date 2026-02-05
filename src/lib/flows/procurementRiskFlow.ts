@@ -37,8 +37,9 @@ export const procurementRiskFlow = ai.defineFlow(
       - Potential for fraud or collusion.
       
       Return a response that can be parsed as JSON matching the schema: { riskScore: number, riskLevel: string, identifiedFactors: string[], aiExplanation: string }`,
+            output: { format: 'json' },
         });
 
-        return response.output() as any;
+        return response.output as any;
     }
 );
