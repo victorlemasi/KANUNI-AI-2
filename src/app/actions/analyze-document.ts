@@ -1,7 +1,8 @@
 "use server"
 
 import { complianceCheckFlow } from "@/lib/flows/complianceCheckFlow";
-import pdf from "pdf-parse";
+// @ts-ignore
+const pdf = require("pdf-parse");
 import mammoth from "mammoth";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
