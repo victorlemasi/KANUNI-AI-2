@@ -38,7 +38,7 @@ type ExtractedMetadata = {
 type AnalysisResult = {
     extractedMetadata: ExtractedMetadata;
     isCompliant: boolean;
-    complianceScore: number;
+    overall_compliance_score: number;
     summary: string;
     checks: ComplianceCheck[];
 }
@@ -337,8 +337,8 @@ export default function NewProcurementPage() {
                                                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                                     />
                                                     <path
-                                                        className={analysisResult.complianceScore > 70 ? "text-emerald-500" : analysisResult.complianceScore > 40 ? "text-yellow-500" : "text-rose-500"}
-                                                        strokeDasharray={`${analysisResult.complianceScore}, 100`}
+                                                        className={analysisResult.overall_compliance_score > 70 ? "text-emerald-500" : analysisResult.overall_compliance_score > 40 ? "text-yellow-500" : "text-rose-500"}
+                                                        strokeDasharray={`${analysisResult.overall_compliance_score}, 100`}
                                                         strokeWidth="2.5"
                                                         strokeLinecap="round"
                                                         stroke="currentColor"
@@ -347,7 +347,7 @@ export default function NewProcurementPage() {
                                                     />
                                                 </svg>
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                    <span className="text-4xl font-black text-zinc-900">{analysisResult.complianceScore}</span>
+                                                    <span className="text-4xl font-black text-zinc-900">{analysisResult.overall_compliance_score}</span>
                                                     <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Health</span>
                                                 </div>
                                             </div>

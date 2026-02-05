@@ -15,7 +15,7 @@ export const complianceCheckFlow = ai.defineFlow(
                 currency: z.string().describe("The currency code (e.g., KES, USD)"),
             }),
             isCompliant: z.boolean(),
-            complianceScore: z.number(),
+            overall_compliance_score: z.number(),
             summary: z.string(),
             checks: z.array(z.object({
                 rule: z.string(),
@@ -26,7 +26,7 @@ export const complianceCheckFlow = ai.defineFlow(
         }),
     },
     async (input) => {
-        const response = await ai.generate({
+        const { output } = await ai.generate({
             prompt: `You are a Senior Compliance Auditor for public procurement in Kenya. 
       Your audit must be based on the **Public Procurement and Asset Disposal Act (PPADA) 2015 (Rev. 2022)** and the **2024 Amendments**.
       
@@ -48,13 +48,31 @@ export const complianceCheckFlow = ai.defineFlow(
          - **Declaration**: Must include a non-corruption declaration (Section 62).
       
       3. **Scoring**:
-         - Calculate an overall compliance score (0-100).
+         - Calculate an overall_compliance_score (0-100).
          - For each check, provide status (Pass/Fail/Warning), finding from text, and recommendation.
       
-      Return a structured JSON object matching the output schema.`,
-            output: { format: 'json' }, // Ensure JSON format for structured output
+      CRITICAL: You MUST return a JSON object with strictly these keys at the top level: extractedMetadata (with title, method, value, currency), isCompliant (boolean), overall_compliance_score (number), summary (string), and checks (array).`,
+            output: {
+                schema: z.object({
+                    extractedMetadata: z.object({
+                        title: z.string(),
+                        method: z.string(),
+                        value: z.number(),
+                        currency: z.string(),
+                    }),
+                    isCompliant: z.boolean(),
+                    overall_compliance_score: z.number(),
+                    summary: z.string(),
+                    checks: z.array(z.object({
+                        rule: z.string(),
+                        status: z.enum(["Pass", "Fail", "Warning"]),
+                        finding: z.string(),
+                        recommendation: z.string(),
+                    })),
+                })
+            },
         });
 
-        return response.output as any;
+        return output as any;
     }
 );

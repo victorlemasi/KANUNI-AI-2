@@ -231,7 +231,7 @@ function ComplianceTab({ analysis }: { analysis: any }) {
                     <h3 className="text-lg font-bold text-zinc-900">Kenya PPADA Compliance Audit</h3>
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Score</span>
-                        <span className="text-2xl font-black text-zinc-900">{analysis.complianceScore}</span>
+                        <span className="text-2xl font-black text-zinc-900">{analysis.overall_compliance_score}</span>
                     </div>
                 </div>
 
