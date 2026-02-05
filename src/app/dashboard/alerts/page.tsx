@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
     AlertTriangle,
@@ -133,7 +133,7 @@ export default function AlertsPage() {
                                     )}
                                     {alert.status !== "Resolved" && (
                                         <button
-                                            onClick={() => updateStatus(alert.id, "Resolved")}
+                                            onClick={() => updateStatus(alert.docId, "Resolved")}
                                             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 flex items-center gap-2 shadow-sm"
                                         >
                                             <CheckCircle2 className="h-4 w-4" />
@@ -165,7 +165,7 @@ export default function AlertsPage() {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    )))}
             </div>
         </div>
     )
