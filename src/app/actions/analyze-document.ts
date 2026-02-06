@@ -7,9 +7,15 @@ import mammoth from "mammoth";
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     try {
         console.log("Analyzing PDF with pdf-parse...");
-        const data = await PDFParse(buffer);
-        console.log(`Extracted ${data.text.length} characters from PDF.`);
-        return data.text;
+        const parser = new PDFParse({ data: buffer });
+        const data = await parser.getText();
+        const text = data.text;
+
+        // Cleanup to avoid memory leaks
+        await parser.destroy();
+
+        console.log(`Extracted ${text.length} characters from PDF.`);
+        return text;
     } catch (error) {
         console.error("PDF Parsing Error:", error);
         throw new Error("Failed to parse PDF document. It might be protected or corrupted.");
