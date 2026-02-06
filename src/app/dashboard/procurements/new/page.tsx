@@ -208,8 +208,8 @@ export default function NewProcurementPage() {
 
                 {/* Step 2: Analysis & Form (Only shown when file is uploaded or analyzed) */}
                 {(file || analysisResult) && (
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <div className="lg:col-span-2 space-y-8 lg:space-y-10 order-2 lg:order-1">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                        <div className="space-y-8 lg:space-y-10 order-2 lg:order-1">
                             <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm space-y-10">
                                 <section className="space-y-8">
                                     <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
@@ -332,8 +332,8 @@ export default function NewProcurementPage() {
                                     </div>
                                 ) : analysisResult ? (
                                     <div className="space-y-10">
-                                        <div className="flex items-center justify-center py-6 bg-zinc-50 rounded-3xl border border-zinc-100 shadow-inner">
-                                            <div className="relative h-32 w-32">
+                                        <div className="flex flex-col sm:flex-row items-center gap-8 py-8 px-6 bg-zinc-50 rounded-3xl border border-zinc-100 shadow-inner">
+                                            <div className="relative h-28 w-28 shrink-0">
                                                 <svg className="h-full w-full" viewBox="0 0 36 36">
                                                     <path
                                                         className="text-white"
@@ -354,13 +354,23 @@ export default function NewProcurementPage() {
                                                     />
                                                 </svg>
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                    <span className="text-4xl font-black text-zinc-900">{analysisResult.overall_compliance_score}</span>
-                                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Health</span>
+                                                    <span className="text-3xl font-black text-zinc-900">{analysisResult.overall_compliance_score}</span>
+                                                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Health</span>
                                                 </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h4 className="text-sm font-black text-zinc-900">Compliance Health</h4>
+                                                <p className="text-xs text-zinc-500 leading-relaxed font-medium">
+                                                    {analysisResult.overall_compliance_score > 70
+                                                        ? "Strong alignment with PPADA 2015. Minimal risks detected."
+                                                        : analysisResult.overall_compliance_score > 40
+                                                            ? "Moderate risks found. Several warnings require attention."
+                                                            : "High risk profile. Significant non-compliance detected."}
+                                                </p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-6">
+                                        <div className="space-y-8">
                                             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100 pb-2">Rule Violations & Findings</p>
 
                                             {(["Regulatory", "Financial", "Risk/Best Practice"] as const).map((cat) => {
@@ -379,23 +389,31 @@ export default function NewProcurementPage() {
                                                         <div className="space-y-4">
                                                             {catChecks.map((check, idx) => (
                                                                 <div key={idx} className="p-5 rounded-2xl border border-zinc-100 bg-zinc-50/30 hover:bg-zinc-50 transition-all group">
-                                                                    <div className="flex items-center justify-between mb-3">
-                                                                        <span className="text-xs font-black text-zinc-900">{check.rule}</span>
-                                                                        <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
+                                                                    <div className="flex items-center justify-between mb-4 border-b border-zinc-100 pb-3">
+                                                                        <span className="text-xs font-black text-zinc-900 group-hover:text-zinc-950 transition-colors uppercase tracking-tight">{check.rule}</span>
+                                                                        <span className={`shrink-0 flex items-center gap-1.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
                                                                             check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
                                                                             }`}>
                                                                             {check.status === "Pass" ? <CheckCircle className="h-3 w-3" /> : check.status === "Warning" ? <AlertTriangle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
                                                                             {check.status}
                                                                         </span>
                                                                     </div>
-                                                                    <p className="text-[12px] text-zinc-600 leading-snug mb-3 font-medium">
-                                                                        {check.finding}
-                                                                    </p>
-                                                                    <div className="flex items-start gap-2 pt-3 border-t border-zinc-100">
-                                                                        <ClipboardCheck className="h-3 w-3 text-zinc-300 shrink-0 mt-0.5" />
-                                                                        <p className="text-[10px] text-zinc-400 italic leading-snug">
-                                                                            {check.recommendation}
-                                                                        </p>
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                        <div className="space-y-2">
+                                                                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Finding</span>
+                                                                            <p className="text-[11px] text-zinc-600 leading-snug font-medium">
+                                                                                {check.finding}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="space-y-2 bg-white/50 p-3 rounded-xl border border-zinc-100/50">
+                                                                            <div className="flex items-center gap-1.5">
+                                                                                <ClipboardCheck className="h-3 w-3 text-zinc-300" />
+                                                                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Recommendation</span>
+                                                                            </div>
+                                                                            <p className="text-[10px] text-zinc-500 italic leading-snug">
+                                                                                {check.recommendation}
+                                                                            </p>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             ))}
