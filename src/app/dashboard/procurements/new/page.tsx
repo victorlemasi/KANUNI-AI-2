@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
     ArrowLeft,
@@ -52,6 +52,7 @@ export default function NewProcurementPage() {
     const [file, setFile] = useState<File | null>(null)
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [countdown, setCountdown] = useState<number>(0)
     const [formData, setLocalFormData] = useState({
         title: "",
         method: "Open Tender",
@@ -59,6 +60,15 @@ export default function NewProcurementPage() {
         currency: "KES",
         description: ""
     })
+
+    useEffect(() => {
+        if (countdown > 0) {
+            const timer = setInterval(() => {
+                setCountdown((prev) => prev - 1)
+            }, 1000)
+            return () => clearInterval(timer)
+        }
+    }, [countdown])
 
     const triggerAnalysis = async (selectedFile: File) => {
         setAnalyzing(true)
@@ -84,6 +94,11 @@ export default function NewProcurementPage() {
                 })
             } else {
                 setError(result.error || "Analysis failed")
+                // Parse retry time if available in error message
+                const match = result.error?.match(/wait (\d+) seconds/i)
+                if (match) {
+                    setCountdown(parseInt(match[1]))
+                }
             }
         } catch (err) {
             console.error(err)
@@ -439,11 +454,24 @@ export default function NewProcurementPage() {
                                             </p>
                                             <div className="flex flex-col gap-3 pt-2">
                                                 <button
+                                                    disabled={countdown > 0}
                                                     onClick={() => file && triggerAnalysis(file)}
-                                                    className="flex items-center justify-center gap-2 mx-auto px-6 py-2 bg-rose-600 text-white text-xs font-black rounded-xl hover:bg-rose-700 transition-all shadow-md active:scale-95"
+                                                    className={cn(
+                                                        "flex items-center justify-center gap-2 mx-auto px-10 py-3 text-white text-xs font-black rounded-xl transition-all shadow-md active:scale-95",
+                                                        countdown > 0 ? "bg-zinc-400 cursor-not-allowed" : "bg-rose-600 hover:bg-rose-700"
+                                                    )}
                                                 >
-                                                    <Sparkles className="h-3 w-3" />
-                                                    RETRY ANALYSIS
+                                                    {countdown > 0 ? (
+                                                        <>
+                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                            COOLDOWN: {countdown}S
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles className="h-3 w-3" />
+                                                            RETRY ANALYSIS
+                                                        </>
+                                                    )}
                                                 </button>
                                                 <button
                                                     onClick={() => document.getElementById('file-upload')?.click()}
