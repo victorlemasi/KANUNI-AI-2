@@ -60,40 +60,44 @@ export default function NewProcurementPage() {
         description: ""
     })
 
+    const triggerAnalysis = async (selectedFile: File) => {
+        setAnalyzing(true)
+        setError(null)
+        setAnalysisResult(null)
+
+        const data = new FormData()
+        data.append("file", selectedFile)
+
+        try {
+            const result = await analyzeDocumentAction(data)
+            if (result.success) {
+                const analysis = result.analysis as AnalysisResult
+                setAnalysisResult(analysis)
+
+                // Auto-fill form from AI extraction
+                setLocalFormData({
+                    title: analysis.extractedMetadata.title || "",
+                    method: analysis.extractedMetadata.method || "Open Tender",
+                    value: analysis.extractedMetadata.value?.toString() || "",
+                    currency: analysis.extractedMetadata.currency || "KES",
+                    description: analysis.summary
+                })
+            } else {
+                setError(result.error || "Analysis failed")
+            }
+        } catch (err) {
+            console.error(err)
+            setError("An unexpected error occurred during analysis.")
+        } finally {
+            setAnalyzing(false)
+        }
+    }
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0]
             setFile(selectedFile)
-            setAnalyzing(true)
-            setError(null)
-            setAnalysisResult(null)
-
-            const data = new FormData()
-            data.append("file", selectedFile)
-
-            try {
-                const result = await analyzeDocumentAction(data)
-                if (result.success) {
-                    const analysis = result.analysis as AnalysisResult
-                    setAnalysisResult(analysis)
-
-                    // Auto-fill form from AI extraction
-                    setLocalFormData({
-                        title: analysis.extractedMetadata.title || "",
-                        method: analysis.extractedMetadata.method || "Open Tender",
-                        value: analysis.extractedMetadata.value?.toString() || "",
-                        currency: analysis.extractedMetadata.currency || "KES",
-                        description: analysis.summary
-                    })
-                } else {
-                    setError(result.error || "Analysis failed")
-                }
-            } catch (err) {
-                console.error(err)
-                setError("An unexpected error occurred during analysis.")
-            } finally {
-                setAnalyzing(false)
-            }
+            await triggerAnalysis(selectedFile)
         }
     }
 
@@ -433,12 +437,21 @@ export default function NewProcurementPage() {
                                             <p className="text-sm text-zinc-500 italic leading-relaxed font-medium">
                                                 {error}
                                             </p>
-                                            <button
-                                                onClick={() => document.getElementById('file-upload')?.click()}
-                                                className="text-xs font-bold text-rose-600 hover:underline mt-2"
-                                            >
-                                                Try Another Document
-                                            </button>
+                                            <div className="flex flex-col gap-3 pt-2">
+                                                <button
+                                                    onClick={() => file && triggerAnalysis(file)}
+                                                    className="flex items-center justify-center gap-2 mx-auto px-6 py-2 bg-rose-600 text-white text-xs font-black rounded-xl hover:bg-rose-700 transition-all shadow-md active:scale-95"
+                                                >
+                                                    <Sparkles className="h-3 w-3" />
+                                                    RETRY ANALYSIS
+                                                </button>
+                                                <button
+                                                    onClick={() => document.getElementById('file-upload')?.click()}
+                                                    className="text-[10px] font-black text-zinc-400 hover:text-rose-600 uppercase tracking-widest transition-colors"
+                                                >
+                                                    Try Another Document
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
