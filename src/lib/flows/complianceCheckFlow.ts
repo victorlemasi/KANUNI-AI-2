@@ -18,6 +18,7 @@ export const complianceCheckFlow = ai.defineFlow(
             overall_compliance_score: z.number(),
             summary: z.string(),
             checks: z.array(z.object({
+                category: z.enum(["Regulatory", "Financial", "Risk/Best Practice"]),
                 rule: z.string(),
                 status: z.enum(["Pass", "Fail", "Warning"]),
                 finding: z.string(),
@@ -58,11 +59,16 @@ export const complianceCheckFlow = ai.defineFlow(
             - Clarity of Technical Specifications/Terms of Reference.
             - Identification of high-risk legal/commercial clauses (e.g., unfair termination, indemnity).
       
-      3. **Scoring**:
+      3. **Scoring & Categorization**:
          - Calculate an overall_compliance_score (0-100) reflecting all dimensions.
-         - For each check, provide status (Pass/Fail/Warning), finding from text, and recommendation.
+         - For each check, provide:
+           - **category**: Must be exactly one of "Regulatory", "Financial", or "Risk/Best Practice".
+           - **rule**: The specific rule or standard being checked.
+           - **status**: Pass/Fail/Warning.
+           - **finding**: Evidence from the text.
+           - **recommendation**: Actionable advice.
       
-      CRITICAL: You MUST return a JSON object with strictly these keys at the top level: extractedMetadata (with title, method, value, currency), isCompliant (boolean), overall_compliance_score (number), summary (string), and checks (array).`,
+      CRITICAL: You MUST categorize EVERY check correctly. PPADA items are "Regulatory". Payment/Budget items are "Financial". Everything else is "Risk/Best Practice".`,
             output: {
                 schema: z.object({
                     extractedMetadata: z.object({
@@ -75,6 +81,7 @@ export const complianceCheckFlow = ai.defineFlow(
                     overall_compliance_score: z.number(),
                     summary: z.string(),
                     checks: z.array(z.object({
+                        category: z.enum(["Regulatory", "Financial", "Risk/Best Practice"]),
                         rule: z.string(),
                         status: z.enum(["Pass", "Fail", "Warning"]),
                         finding: z.string(),

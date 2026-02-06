@@ -22,6 +22,7 @@ import { analyzeDocumentAction } from "@/app/actions/analyze-document"
 import { createProcurementAction } from "@/app/actions/procurement-actions"
 
 type ComplianceCheck = {
+    category: "Regulatory" | "Financial" | "Risk/Best Practice";
     rule: string;
     status: "Pass" | "Fail" | "Warning";
     finding: string;
@@ -364,7 +365,10 @@ export default function NewProcurementPage() {
                                                 {analysisResult.checks.map((check, idx) => (
                                                     <div key={idx} className="p-5 rounded-2xl border border-zinc-100 bg-zinc-50/30 hover:bg-zinc-50 transition-all group">
                                                         <div className="flex items-center justify-between mb-3">
-                                                            <span className="text-xs font-black text-zinc-900">{check.rule}</span>
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{check.category}</span>
+                                                                <span className="text-xs font-black text-zinc-900">{check.rule}</span>
+                                                            </div>
                                                             <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
                                                                 check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
                                                                 }`}>
