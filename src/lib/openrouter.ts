@@ -48,9 +48,16 @@ export async function generateText(prompt: string, model?: string) {
     messages,
     temperature: 0.7,
     max_tokens: 2000,
+    stream: false,
   });
 
-  return response.choices[0]?.message?.content || '';
+  // Handle both streaming and non-streaming responses
+  if ('choices' in response) {
+    return response.choices[0]?.message?.content || '';
+  } else {
+    // Handle streaming response (shouldn't happen with stream: false, but just in case)
+    return '';
+  }
 }
 
 export async function analyzeProcurementDocument(content: string) {
@@ -74,9 +81,16 @@ Provide a structured analysis in JSON format.`;
     messages,
     temperature: 0.3,
     max_tokens: 3000,
+    stream: false,
   });
 
-  return response.choices[0]?.message?.content || '';
+  // Handle both streaming and non-streaming responses
+  if ('choices' in response) {
+    return response.choices[0]?.message?.content || '';
+  } else {
+    // Handle streaming response (shouldn't happen with stream: false, but just in case)
+    return '';
+  }
 }
 
 export const AVAILABLE_MODELS = [

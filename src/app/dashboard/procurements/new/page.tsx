@@ -60,6 +60,7 @@ export default function NewProcurementPage() {
         currency: "KES",
         description: ""
     })
+    const [aiProvider, setAiProvider] = useState<"genkit" | "openrouter">("genkit")
 
     useEffect(() => {
         if (countdown > 0) {
@@ -83,6 +84,7 @@ export default function NewProcurementPage() {
 
         const data = new FormData()
         data.append("file", selectedFile)
+        data.append("provider", aiProvider)
 
         try {
             const result = await analyzeDocumentAction(data)
@@ -172,6 +174,56 @@ export default function NewProcurementPage() {
             </div>
 
             <div className="space-y-8">
+                {/* AI Provider Selection */}
+                <section className="bg-white rounded-2xl border border-zinc-200 p-8 shadow-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="h-8 w-8 rounded-lg bg-zinc-900 flex items-center justify-center text-white">
+                            <Sparkles className="h-4 w-4" />
+                        </div>
+                        <h2 className="text-lg font-bold text-zinc-900">Choose AI Provider</h2>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button
+                            type="button"
+                            onClick={() => setAiProvider("genkit")}
+                            className={`p-6 rounded-xl border-2 transition-all ${
+                                aiProvider === "genkit" 
+                                    ? "border-zinc-900 bg-zinc-50" 
+                                    : "border-zinc-200 bg-white hover:border-zinc-300"
+                            }`}
+                        >
+                            <div className="text-left space-y-2">
+                                <h3 className="font-bold text-zinc-900">Google Genkit</h3>
+                                <p className="text-sm text-zinc-500">Google's AI models with specialized procurement analysis</p>
+                                <div className="flex items-center gap-2">
+                                    <div className={`h-2 w-2 rounded-full ${aiProvider === "genkit" ? "bg-zinc-900" : "bg-zinc-300"}`} />
+                                    <span className="text-xs text-zinc-400">Default Provider</span>
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button
+                            type="button"
+                            onClick={() => setAiProvider("openrouter")}
+                            className={`p-6 rounded-xl border-2 transition-all ${
+                                aiProvider === "openrouter" 
+                                    ? "border-blue-600 bg-blue-50" 
+                                    : "border-zinc-200 bg-white hover:border-zinc-300"
+                            }`}
+                        >
+                            <div className="text-left space-y-2">
+                                <h3 className="font-bold text-zinc-900">OpenRouter</h3>
+                                <p className="text-sm text-zinc-500">Multiple AI models including Claude, GPT-4, and Llama</p>
+                                <div className="flex items-center gap-2">
+                                    <div className={`h-2 w-2 rounded-full ${aiProvider === "openrouter" ? "bg-blue-600" : "bg-zinc-300"}`} />
+                                    <span className="text-xs text-zinc-400">Advanced Options</span>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </section>
+
                 {/* Step 1: Document Upload */}
                 <section className="bg-white rounded-2xl border border-zinc-200 p-8 shadow-sm">
                     <div className="flex items-center gap-3 mb-6">

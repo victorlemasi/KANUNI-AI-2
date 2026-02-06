@@ -11,12 +11,14 @@ import {
     Settings,
     ShieldCheck,
     LogOut,
-    X
+    X,
+    Brain
 } from "lucide-react"
 
 const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
     { name: "Procurements", icon: FileText, href: "/dashboard/procurements" },
+    { name: "OpenRouter AI", icon: Brain, href: "/dashboard/openrouter" },
     { name: "Audit Reports", icon: ShieldCheck, href: "/dashboard/reports" },
     { name: "Alerts Center", icon: AlertTriangle, href: "/dashboard/alerts" },
     { name: "User Management", icon: Users, href: "/dashboard/users" },
