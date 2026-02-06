@@ -75,6 +75,9 @@ export async function getProcurementsAction() {
 
 export async function getProcurementByIdAction(docId: string) {
     try {
+        if (!docId || typeof docId !== 'string') {
+            return { success: false, error: "Invalid procurement ID" };
+        }
         const doc = await adminDb.collection("procurements").doc(docId).get();
         if (!doc.exists) return { success: false, error: "Not found" };
 
