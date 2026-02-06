@@ -67,8 +67,14 @@ export default function NewProcurementPage() {
                 setCountdown((prev) => prev - 1)
             }, 1000)
             return () => clearInterval(timer)
+        } else if (countdown === 0 && error && file && !analyzing) {
+            // Auto-retry if it was a quota error
+            if (error.includes("wait") || error.includes("Quota") || error.includes("limit")) {
+                console.log("Cooldown expired. Auto-retrying analysis...")
+                triggerAnalysis(file)
+            }
         }
-    }, [countdown])
+    }, [countdown, error, file, analyzing])
 
     const triggerAnalysis = async (selectedFile: File) => {
         setAnalyzing(true)

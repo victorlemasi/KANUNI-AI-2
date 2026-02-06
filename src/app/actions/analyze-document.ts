@@ -5,6 +5,8 @@ import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
 import path from "path";
 import { pathToFileURL } from "url";
+import { adminDb } from "@/lib/firebase-admin";
+import crypto from "crypto";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     try {
@@ -58,10 +60,29 @@ export async function analyzeDocumentAction(formData: FormData) {
         }
 
         console.log(`Starting AI compliance flow with ${text.length} characters...`);
+
+        // --- BUILT-IN CACHING LAYER ---
+        const textHash = crypto.createHash('sha256').update(text).digest('hex');
+        const cacheRef = adminDb.collection("analysis_cache").doc(textHash);
+        const cacheDoc = await cacheRef.get();
+
+        if (cacheDoc.exists) {
+            console.log("Returning cached analysis result (Quota Saved!)");
+            return { success: true, analysis: cacheDoc.data()?.result, cached: true };
+        }
+
         const result = await complianceCheckFlow({
             documentText: text
         });
-        console.log("Compliance flow completed successfully.");
+
+        // Save to cache for future requests
+        await cacheRef.set({
+            result,
+            createdAt: new Date(),
+            textSnippet: text.slice(0, 100) // For debugging context
+        });
+
+        console.log("Compliance flow completed successfully and cached.");
 
         return { success: true, analysis: result };
     } catch (error: any) {
