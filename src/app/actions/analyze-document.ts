@@ -66,10 +66,16 @@ export async function analyzeDocumentAction(formData: FormData) {
         return { success: true, analysis: result };
     } catch (error: any) {
         console.error("Analysis Error Details:", error);
-        // Provide more user-friendly error messages
-        const message = error.message?.includes("Quota exceeded")
-            ? "AI model quota exceeded. Please try again in 1 minute."
-            : error.message || "An unexpected error occurred during analysis.";
+
+        let message = error.message || "An unexpected error occurred during analysis.";
+
+        // Specific handling for Quota/Rate Limit issues
+        if (error.message?.includes("429") || error.message?.includes("RESOURCE_EXHAUSTED") || error.status === 'RESOURCE_EXHAUSTED') {
+            const retryAfter = error.originalMessage?.match(/retry in ([\d.]+)s/)?.[1];
+            message = `API Quota Exceeded. The free tier has reached its limit. ${retryAfter ? `Please wait ${Math.ceil(parseFloat(retryAfter))} seconds before retrying.` : "Please try again in a few minutes."}`;
+        } else if (error.message?.includes("Quota exceeded")) {
+            message = "AI model quota exceeded. Please try again in 1 minute or check your Google AI Studio plan.";
+        }
 
         return { success: false, error: message };
     }

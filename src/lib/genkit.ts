@@ -8,8 +8,8 @@ export const ai = genkit({
             // Removing explicit apiVersion to allow plugin to select correct endpoint (likely v1beta for these new models)
         })
     ],
-    // Switching to 2.0 Flash which is highly stable and fast
-    model: "googleai/gemini-2.0-flash",
+    // Switching to 1.5 Flash for better free tier quota and large context stability
+    model: "googleai/gemini-1.5-flash",
 });
 
 export { z };
