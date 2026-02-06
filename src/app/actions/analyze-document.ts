@@ -3,12 +3,16 @@
 import { complianceCheckFlow } from "@/lib/flows/complianceCheckFlow";
 import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
+import path from "path";
+import { pathToFileURL } from "url";
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     try {
         console.log("Analyzing PDF with pdf-parse...");
-        // Set worker for serverless/container compatibility
-        PDFParse.setWorker("https://unpkg.com/pdfjs-dist@5.4.296/build/pdf.worker.min.mjs");
+        // Set worker for serverless/container compatibility using file:// protocol
+        // This avoids the "https protocol not supported by ESM loader" error
+        const workerPath = path.join(process.cwd(), "node_modules/pdf-parse/dist/pdf-parse/esm/pdf.worker.mjs");
+        PDFParse.setWorker(pathToFileURL(workerPath).toString());
 
         const parser = new PDFParse({ data: buffer });
         const data = await parser.getText();
