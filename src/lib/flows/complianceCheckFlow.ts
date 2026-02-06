@@ -27,8 +27,11 @@ export const complianceCheckFlow = ai.defineFlow(
     },
     async (input) => {
         const { output } = await ai.generate({
-            prompt: `You are a Senior Compliance Auditor for public procurement in Kenya. 
-      Your audit must be based on the **Public Procurement and Asset Disposal Act (PPADA) 2015 (Rev. 2022)** and the **2024 Amendments**.
+            prompt: `You are a Senior Strategic Procurement Consultant and Compliance Auditor. 
+      Your audit must be comprehensive, covering regulatory compliance, financial feasibility, and global best practices.
+      
+      Primary Framework: Kenyan Public Procurement and Asset Disposal Act (PPADA) 2015 (Rev. 2022) and the 2024 Amendments.
+      Extended Framework: ISO 20400 (Sustainable Procurement), Generally Accepted Accounting Principles (GAAP) for financial feasibility, and modern Risk Management standards.
       
       Document Content: ${input.documentText.slice(0, 15000)}
       Existing Context: ${JSON.stringify(input.procurementData || {})}
@@ -39,16 +42,24 @@ export const complianceCheckFlow = ai.defineFlow(
          - If it mentions a public tender, it's "Open Tender".
          - If value is not found, use 0 but flag it in the summary.
       
-      2. **Compliance Audit**: Review the document against these specific Kenyan rules:
-         - **Local Preference**: Contracts < KES 1 Billion must be awarded exclusively to local firms (2024 Amendment).
-         - **AGPO Reservation**: 30% of procurement budget must be reserved for Women, Youth, and PWDs (Section 157).
-         - **Local Content**: Minimum of 40% local content requirement.
-         - **Procurement Methods**: Open (> KES 3M), RFQ (< KES 3M), Low-Value (< KES 50k).
-         - **Advance Payment**: Capped at 20% (Section 147-148).
-         - **Declaration**: Must include a non-corruption declaration (Section 62).
+      2. **Multi-Dimensional Audit**: Review the document against these categories:
+         - **Regulatory (PPADA)**: 
+            - Local Preference (Contracts < KES 1B for local firms).
+            - AGPO Reservation (30% for Women/Youth/PWDs).
+            - Local Content (Min 40%).
+            - Advance Payment (Capped at 20%).
+            - Non-corruption declaration (Section 62).
+         - **Financial Feasibility**: 
+            - Are payment terms clearly defined and market-standard?
+            - Is there a clear budget breakdown or pricing structure?
+            - Are there any hidden costs or financial risks?
+         - **Global Best Practices & Risk**:
+            - Ethical sourcing and sustainability (ISO 20400).
+            - Clarity of Technical Specifications/Terms of Reference.
+            - Identification of high-risk legal/commercial clauses (e.g., unfair termination, indemnity).
       
       3. **Scoring**:
-         - Calculate an overall_compliance_score (0-100).
+         - Calculate an overall_compliance_score (0-100) reflecting all dimensions.
          - For each check, provide status (Pass/Fail/Warning), finding from text, and recommendation.
       
       CRITICAL: You MUST return a JSON object with strictly these keys at the top level: extractedMetadata (with title, method, value, currency), isCompliant (boolean), overall_compliance_score (number), summary (string), and checks (array).`,

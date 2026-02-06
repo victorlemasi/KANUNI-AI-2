@@ -309,8 +309,8 @@ export default function NewProcurementPage() {
                                         <ShieldCheck className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-black text-zinc-900 tracking-tight">AI Compliance</h3>
-                                        <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Kenya PPADA 2024</p>
+                                        <h3 className="text-lg font-black text-zinc-900 tracking-tight">Audit Insights</h3>
+                                        <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Financial & Regulatory</p>
                                     </div>
                                 </div>
 
@@ -324,8 +324,8 @@ export default function NewProcurementPage() {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <p className="text-sm font-black text-zinc-900">Gemini is checking rules...</p>
-                                            <p className="text-xs text-zinc-400 font-medium">Verifying against Kenyan Law</p>
+                                            <p className="text-sm font-black text-zinc-900">AI is analyzing document...</p>
+                                            <p className="text-xs text-zinc-400 font-medium">Verifying against Law & Best Practices</p>
                                         </div>
                                     </div>
                                 ) : analysisResult ? (
