@@ -206,15 +206,22 @@ function RiskTab({ procurement, analysis }: { procurement: any, analysis: any })
                         <h4 className="text-xl font-bold text-zinc-900 leading-tight">
                             {analysis?.summary || "AI has evaluated the procurement as standard with no immediate red flags."}
                         </h4>
-                        <p className="text-sm text-zinc-600 leading-relaxed font-medium">
-                            The evaluation is based on the procurement method ({procurement.method}) and the estimated value (KES {Number(procurement.value).toLocaleString()}).
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
+                        <div className="mt-3 p-4 bg-zinc-50 rounded-lg border border-zinc-100">
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-sm font-medium text-zinc-600">Analysis Provider:</span>
+                                <span className={`text-sm font-bold px-2 py-1 rounded ${
+                                    analysis?.provider === 'genkit' ? 'bg-blue-100 text-blue-700' :
+                                    analysis?.provider === 'openrouter' ? 'bg-purple-100 text-purple-700' :
+                                    analysis?.provider === 'basic' ? 'bg-gray-100 text-gray-700' :
+                                    'bg-green-100 text-green-700'
+                                }`}>
+                                    {analysis?.provider === 'genkit' ? 'Google AI' :
+                                     analysis?.provider === 'openrouter' ? 'OpenRouter' :
+                                     analysis?.provider === 'basic' ? 'Basic Analysis' : 'AI'}
+                                </span>
+                                {analysis?.fallback && (
+                                    <span className="text-sm font-medium px-2 py-1 rounded bg-orange-100 text-orange-700">
+                                        Fallback Used
 
 function ComplianceTab({ analysis }: { analysis: any }) {
     if (!analysis) return (

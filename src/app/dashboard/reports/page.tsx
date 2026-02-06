@@ -78,10 +78,29 @@ export default function ReportsPage() {
                                     </span>
                                     <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Health</span>
                                 </div>
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-3">
+                                <div className="space-y-1 flex-1">
+                                    <div className="flex items-center justify-between">
                                         <h3 className="text-base font-bold text-zinc-900 group-hover:text-blue-600 transition-colors leading-tight">{report.title}</h3>
-                                        <span className="text-xs font-mono text-zinc-400 font-medium px-2 py-0.5 rounded bg-zinc-50 border border-zinc-100">{report.id}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-mono text-zinc-400 font-medium px-2 py-0.5 rounded bg-zinc-50 border border-zinc-100">{report.id}</span>
+                                            {report.provider && (
+                                                <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full ${
+                                                    report.provider === 'genkit' ? 'bg-blue-100 text-blue-700' :
+                                                    report.provider === 'openrouter' ? 'bg-purple-100 text-purple-700' :
+                                                    report.provider === 'basic' ? 'bg-gray-100 text-gray-700' :
+                                                    'bg-green-100 text-green-700'
+                                                }`}>
+                                                    {report.provider === 'genkit' ? 'Google AI' :
+                                                     report.provider === 'openrouter' ? 'OpenRouter' :
+                                                     report.provider === 'basic' ? 'Basic Analysis' : 'AI'}
+                                                </span>
+                                            )}
+                                            {report.fallback && (
+                                                <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                                                    Fallback
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-3 text-xs text-zinc-500 font-medium">
                                         <span className="flex items-center gap-1">
@@ -92,7 +111,10 @@ export default function ReportsPage() {
                                         <span>Audited {report.date}</span>
                                     </div>
                                     {report.summary && (
-                                        <p className="text-[13px] text-zinc-400 line-clamp-1 mt-2 pr-10">{report.summary}</p>
+                                        <div className="bg-zinc-50 rounded-lg p-3 border border-zinc-100">
+                                            <p className="text-[13px] text-zinc-600 leading-snug font-medium mb-1">AI Analysis Summary:</p>
+                                            <p className="text-[13px] text-zinc-700 line-clamp-3">{report.summary}</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
