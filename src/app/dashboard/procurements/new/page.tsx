@@ -20,6 +20,7 @@ import {
 import Link from "next/link"
 import { analyzeDocumentAction } from "@/app/actions/analyze-document"
 import { createProcurementAction } from "@/app/actions/procurement-actions"
+import { cn } from "@/lib/utils"
 
 type ComplianceCheck = {
     category: "Regulatory" | "Financial" | "Risk/Best Practice";
@@ -359,35 +360,49 @@ export default function NewProcurementPage() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Rule Violations & Findings</p>
-                                            <div className="space-y-4">
-                                                {analysisResult.checks.map((check, idx) => (
-                                                    <div key={idx} className="p-5 rounded-2xl border border-zinc-100 bg-zinc-50/30 hover:bg-zinc-50 transition-all group">
-                                                        <div className="flex items-center justify-between mb-3">
-                                                            <div className="flex flex-col gap-1">
-                                                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{check.category}</span>
-                                                                <span className="text-xs font-black text-zinc-900">{check.rule}</span>
-                                                            </div>
-                                                            <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
-                                                                check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
-                                                                }`}>
-                                                                {check.status === "Pass" ? <CheckCircle className="h-3 w-3" /> : check.status === "Warning" ? <AlertTriangle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                                                                {check.status}
-                                                            </span>
+                                        <div className="space-y-6">
+                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-100 pb-2">Rule Violations & Findings</p>
+
+                                            {(["Regulatory", "Financial", "Risk/Best Practice"] as const).map((cat) => {
+                                                const catChecks = analysisResult.checks.filter(c => c.category === cat);
+                                                if (catChecks.length === 0) return null;
+
+                                                return (
+                                                    <div key={cat} className="space-y-4">
+                                                        <div className="flex items-center gap-2 border-b border-zinc-100 pb-2">
+                                                            <div className={cn(
+                                                                "h-1.5 w-1.5 rounded-full",
+                                                                cat === "Regulatory" ? "bg-blue-500" : cat === "Financial" ? "bg-emerald-500" : "bg-purple-500"
+                                                            )} />
+                                                            <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{cat}</h4>
                                                         </div>
-                                                        <p className="text-[12px] text-zinc-600 leading-snug mb-3 font-medium">
-                                                            {check.finding}
-                                                        </p>
-                                                        <div className="flex items-start gap-2 pt-3 border-t border-zinc-100">
-                                                            <ClipboardCheck className="h-3 w-3 text-zinc-300 shrink-0 mt-0.5" />
-                                                            <p className="text-[10px] text-zinc-400 italic leading-snug">
-                                                                {check.recommendation}
-                                                            </p>
+                                                        <div className="space-y-4">
+                                                            {catChecks.map((check, idx) => (
+                                                                <div key={idx} className="p-5 rounded-2xl border border-zinc-100 bg-zinc-50/30 hover:bg-zinc-50 transition-all group">
+                                                                    <div className="flex items-center justify-between mb-3">
+                                                                        <span className="text-xs font-black text-zinc-900">{check.rule}</span>
+                                                                        <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${check.status === "Pass" ? "bg-emerald-100 text-emerald-700" :
+                                                                            check.status === "Warning" ? "bg-yellow-100 text-yellow-700" : "bg-rose-100 text-rose-700"
+                                                                            }`}>
+                                                                            {check.status === "Pass" ? <CheckCircle className="h-3 w-3" /> : check.status === "Warning" ? <AlertTriangle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                                                                            {check.status}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-[12px] text-zinc-600 leading-snug mb-3 font-medium">
+                                                                        {check.finding}
+                                                                    </p>
+                                                                    <div className="flex items-start gap-2 pt-3 border-t border-zinc-100">
+                                                                        <ClipboardCheck className="h-3 w-3 text-zinc-300 shrink-0 mt-0.5" />
+                                                                        <p className="text-[10px] text-zinc-400 italic leading-snug">
+                                                                            {check.recommendation}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 ) : error ? (
