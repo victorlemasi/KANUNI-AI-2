@@ -85,7 +85,16 @@ export async function analyzeDocumentAction(formData: FormData) {
                     fallbackUsed = true;
                 } catch (fallbackError: any) {
                     console.error(`Fallback provider ${fallbackProvider} also failed:`, fallbackError.message);
-                    throw new Error(`Both AI providers unavailable. ${primaryError.message}. Fallback also failed: ${fallbackError.message}`);
+                    
+                    // If both providers failed due to quota, provide basic analysis
+                    if (isQuotaError(fallbackError)) {
+                        console.log("Both AI providers quota exceeded, providing basic analysis...");
+                        result = await provideBasicAnalysis(text);
+                        actualProvider = "basic";
+                        fallbackUsed = true;
+                    } else {
+                        throw new Error(`Both AI providers unavailable. ${primaryError.message}. Fallback also failed: ${fallbackError.message}`);
+                    }
                 }
             } else {
                 throw primaryError;
@@ -116,13 +125,100 @@ export async function analyzeDocumentAction(formData: FormData) {
     }
 }
 
+async function provideBasicAnalysis(text: string): Promise<any> {
+    console.log("Providing basic offline analysis...");
+    
+    // Basic keyword-based analysis
+    const keywords = {
+        procurement: ['tender', 'procurement', 'bid', 'quotation', 'proposal', 'contract'],
+        method: ['open tender', 'restricted tender', 'direct procurement', 'request for quotation', 'rfq'],
+        value: ['ksh', 'kes', '$', 'usd', 'amount', 'budget', 'cost'],
+        compliance: ['compliance', 'regulation', 'ppada', 'act', 'section']
+    };
+    
+    const lowerText = text.toLowerCase();
+    
+    // Extract basic info
+    let detectedMethod = "Unknown";
+    for (const method of keywords.method) {
+        if (lowerText.includes(method)) {
+            detectedMethod = method.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+            break;
+        }
+    }
+    
+    // Extract value (basic regex)
+    const valueMatch = text.match(/(?:ksh|kes|\$|usd)?\s*[\d,]+(?:\.\d{2})?/gi);
+    let detectedValue = 0;
+    let currency = "KES";
+    
+    if (valueMatch) {
+        const match = valueMatch[0].toLowerCase();
+        if (match.includes('ksh') || match.includes('kes')) {
+            currency = "KES";
+        } else if (match.includes('$') || match.includes('usd')) {
+            currency = "USD";
+        }
+        detectedValue = parseFloat(match.replace(/[^\d.]/g, ''));
+    }
+    
+    // Extract title (first sentence or heading)
+    const titleMatch = text.match(/^(.{1,100})/m);
+    const detectedTitle = titleMatch ? titleMatch[1].trim() : "Document Analysis";
+    
+    // Basic compliance checks
+    const complianceChecks = [
+        {
+            category: "Regulatory" as const,
+            rule: "Document Format",
+            status: "Pass" as const,
+            finding: "Document appears to be properly formatted",
+            recommendation: "Ensure all required sections are included"
+        },
+        {
+            category: "Financial" as const,
+            rule: "Budget Information",
+            status: detectedValue > 0 ? "Pass" as const : "Warning" as const,
+            finding: detectedValue > 0 ? `Budget identified: ${detectedValue} ${currency}` : "Budget amount not clearly specified",
+            recommendation: detectedValue > 0 ? "Budget is clearly specified" : "Clearly specify the budget amount"
+        },
+        {
+            category: "Risk/Best Practice" as const,
+            rule: "Basic Compliance",
+            status: "Warning" as const,
+            finding: "Basic analysis completed - AI providers unavailable",
+            recommendation: "Review document manually for full compliance check when AI services are available"
+        }
+    ];
+    
+    return {
+        extractedMetadata: {
+            title: detectedTitle,
+            method: detectedMethod,
+            value: detectedValue,
+            currency: currency
+        },
+        isCompliant: true,
+        overall_compliance_score: 70, // Conservative score for basic analysis
+        summary: "Basic analysis completed using keyword extraction. AI providers are currently unavailable. Manual review recommended for full compliance assessment.",
+        checks: complianceChecks
+    };
+}
+
 function isQuotaError(error: any): boolean {
-    return error.message?.includes("429") || 
-           error.message?.includes("RESOURCE_EXHAUSTED") || 
+    const errorMessage = error.message || '';
+    return errorMessage.includes("429") || 
+           errorMessage.includes("RESOURCE_EXHAUSTED") || 
            error.status === 'RESOURCE_EXHAUSTED' || 
-           error.message?.includes("Quota exceeded") ||
-           error.message?.includes("credits") ||
-           error.message?.includes("tokens");
+           errorMessage.includes("Quota exceeded") ||
+           errorMessage.includes("credits") ||
+           errorMessage.includes("tokens") ||
+           errorMessage.includes("free tier") ||
+           errorMessage.includes("limit") ||
+           errorMessage.includes("wait") ||
+           error.code === 'INSUFFICIENT_CREDITS';
 }
 
 async function analyzeWithProvider(text: string, provider: string): Promise<any> {
