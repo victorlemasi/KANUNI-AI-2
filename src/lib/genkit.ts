@@ -8,8 +8,8 @@ export const ai = genkit({
             apiVersion: "v1beta", // Required for advanced features and reliable model resolution for 2.0
         })
     ],
-    // 2.0 Flash Lite is extremely quota-friendly and supports structured JSON perfectly
-    model: "googleai/gemini-2.0-flash-lite-preview-02-05",
+    // Flash Lite is the most quota-efficient model that supports JSON schema on v1beta
+    model: "googleai/gemini-2.0-flash-lite",
 });
 
 export { z };

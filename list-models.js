@@ -1,57 +1,46 @@
-const fs = require('fs');
-const path = require('path');
+const https = require('https');
 
-// Basic .env parser
-function loadEnv() {
-    try {
-        const envPath = path.resolve('.env.local');
-        const envFile = fs.readFileSync(envPath, 'utf8');
-        const lines = envFile.split('\n');
-        for (const line of lines) {
-            const match = line.match(/^([^=]+)=(.*)$/);
-            if (match) {
-                const key = match[1].trim();
-                const value = match[2].trim().replace(/^["']|["']$/g, ''); // Remove quotes
-                process.env[key] = value;
-            }
-        }
-    } catch (e) {
-        console.log("Could not load .env.local", e.message);
-    }
-}
-
-loadEnv();
-
-const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY;
-
+const apiKey = process.env.GOOGLE_GENAI_API_KEY;
 if (!apiKey) {
-    console.error("No API Key found in .env.local");
+    console.error("GOOGLE_GENAI_API_KEY not found in env");
     process.exit(1);
 }
 
-const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-
-console.log("Fetching models from:", url.replace(apiKey, "HIDDEN_KEY"));
-
-fetch(url)
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) {
-            console.error("API Error:", JSON.stringify(data.error, null, 2));
-        } else if (data.models) {
-            let output = "Available Models:\n";
-            data.models.forEach(m => {
-                if (m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")) {
-                    output += `Name: ${m.name}\n`;
-                    output += `DisplayName: ${m.displayName}\n`;
-                    output += `Version: ${m.version}\n`;
-                    output += "---\n";
+function fetchModels(version) {
+    return new Promise((resolve, reject) => {
+        https.get(`https://generativelanguage.googleapis.com/${version}/models?key=${apiKey}`, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => {
+                try {
+                    const json = JSON.parse(data);
+                    console.log(`--- Models for ${version} ---`);
+                    if (json.models) {
+                        json.models.forEach(m => {
+                            if (m.name.includes("flash") || m.name.includes("lite")) {
+                                console.log(`- ${m.name}`);
+                            }
+                        });
+                    } else {
+                        console.log("No models found or error:", data);
+                    }
+                    resolve();
+                } catch (e) {
+                    console.error(`Error parsing ${version} response:`, e.message);
+                    resolve();
                 }
             });
-            fs.writeFileSync('safe_models.txt', output, 'utf8');
-            console.log("Wrote models to safe_models.txt");
-        } else {
-            console.log("Unexpected response format:", data);
-        }
-    })
-    .catch(err => console.error("Fetch error:", err));
+        }).on('error', (err) => {
+            console.error(`Error fetching ${version}:`, err.message);
+            resolve();
+        });
+    });
+}
+
+async function run() {
+    await fetchModels('v1');
+    console.log();
+    await fetchModels('v1beta');
+}
+
+run();
