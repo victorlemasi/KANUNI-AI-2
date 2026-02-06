@@ -5,11 +5,11 @@ export const ai = genkit({
     plugins: [
         googleAI({
             apiKey: process.env.GOOGLE_GENAI_API_KEY,
-            apiVersion: "v1", // Stable models like 1.5 Flash require or prefer the v1 endpoint
+            apiVersion: "v1beta", // v1beta is required for responseMimeType (JSON schema) support on Gemini 1.5
         })
     ],
-    // Switching to the latest stable 1.5 Flash
-    model: "googleai/gemini-1.5-flash-latest",
+    // Switching to stable 1.5 Flash for better free tier quota
+    model: "googleai/gemini-1.5-flash",
 });
 
 export { z };
