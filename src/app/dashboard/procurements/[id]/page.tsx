@@ -222,6 +222,19 @@ function RiskTab({ procurement, analysis }: { procurement: any, analysis: any })
                                 {analysis?.fallback && (
                                     <span className="text-sm font-medium px-2 py-1 rounded bg-orange-100 text-orange-700">
                                         Fallback Used
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-sm text-zinc-600 leading-relaxed font-medium">
+                                The evaluation is based on procurement method ({procurement.method}) and estimated value (KES {Number(procurement.value).toLocaleString()}).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 function ComplianceTab({ analysis }: { analysis: any }) {
     if (!analysis) return (
