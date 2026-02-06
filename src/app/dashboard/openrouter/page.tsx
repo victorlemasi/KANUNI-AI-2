@@ -12,17 +12,17 @@ import { Loader2, Upload, Brain, FileText, CheckCircle, AlertCircle, Zap } from 
 import { analyzeDocumentAction } from '@/app/actions/analyze-document';
 
 const AVAILABLE_MODELS = [
-  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', description: 'Best for complex analysis' },
-  { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', description: 'Fast and cost-effective' },
-  { id: 'openai/gpt-4o', name: 'GPT-4o', description: 'Balanced performance' },
+  { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', description: 'Fast and cost-effective (Recommended)' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast and affordable' },
+  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', description: 'Best for complex analysis' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o', description: 'Balanced performance' },
   { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', description: 'Google\'s latest model' },
   { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', description: 'Open source powerhouse' },
 ];
 
 export default function OpenRouterPage() {
   const [file, setFile] = useState<File | null>(null);
-  const [selectedModel, setSelectedModel] = useState('anthropic/claude-3.5-sonnet');
+  const [selectedModel, setSelectedModel] = useState('anthropic/claude-3-haiku');
   const [analysis, setAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

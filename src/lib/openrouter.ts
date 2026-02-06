@@ -61,35 +61,73 @@ export async function generateText(prompt: string, model?: string) {
 }
 
 export async function analyzeProcurementDocument(content: string) {
-  const systemPrompt = `You are a procurement analysis expert. Analyze the following procurement document content and provide:
-1. Key procurement items and quantities
-2. Supplier information
-3. Cost analysis
-4. Risk assessment
-5. Compliance checks
-6. Recommendations
+  const systemPrompt = `You are a procurement analysis expert. Analyze the following procurement document and provide a JSON response with this structure:
+{
+  "extractedMetadata": {
+    "title": "procurement title",
+    "method": "procurement method",
+    "value": 0,
+    "currency": "KES"
+  },
+  "isCompliant": true,
+  "overall_compliance_score": 85,
+  "summary": "brief analysis summary",
+  "checks": [
+    {
+      "category": "Regulatory",
+      "rule": "specific rule",
+      "status": "Pass",
+      "finding": "what was found",
+      "recommendation": "what to do"
+    }
+  ]
+}
 
-Provide a structured analysis in JSON format.`;
+Focus on: key procurement items, supplier info, cost analysis, risk assessment, compliance checks, and recommendations. Keep response concise.`;
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: content }
+    { role: 'user', content: content.slice(0, 8000) } // Limit content to reduce tokens
   ];
 
-  const response = await createChatCompletion({
-    model: 'anthropic/claude-3.5-sonnet',
-    messages,
-    temperature: 0.3,
-    max_tokens: 3000,
-    stream: false,
-  });
+  try {
+    const response = await createChatCompletion({
+      model: 'anthropic/claude-3-haiku', // Use cheaper model
+      messages,
+      temperature: 0.3,
+      max_tokens: 1000, // Reduced from 3000
+      stream: false,
+    });
 
-  // Handle both streaming and non-streaming responses
-  if ('choices' in response) {
-    return response.choices[0]?.message?.content || '';
-  } else {
-    // Handle streaming response (shouldn't happen with stream: false, but just in case)
-    return '';
+    // Handle both streaming and non-streaming responses
+    if ('choices' in response) {
+      return response.choices[0]?.message?.content || '';
+    } else {
+      // Handle streaming response (shouldn't happen with stream: false, but just in case)
+      return '';
+    }
+  } catch (error: any) {
+    // If quota exceeded, try with even more reduced settings
+    if (error.message?.includes('credits') || error.message?.includes('tokens')) {
+      console.log('OpenRouter quota exceeded, trying with reduced settings...');
+      
+      const fallbackResponse = await createChatCompletion({
+        model: 'anthropic/claude-3-haiku',
+        messages: [
+          { role: 'system', content: 'Analyze this procurement document briefly. Provide title, method, value, compliance score (0-100), and 2-3 key findings in JSON format.' },
+          { role: 'user', content: content.slice(0, 4000) } // Even smaller content
+        ],
+        temperature: 0.3,
+        max_tokens: 500, // Very reduced
+        stream: false,
+      });
+
+      if ('choices' in fallbackResponse) {
+        return fallbackResponse.choices[0]?.message?.content || '';
+      }
+    }
+    
+    throw error;
   }
 }
 
