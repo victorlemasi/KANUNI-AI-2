@@ -106,18 +106,18 @@ export default function DashboardPage() {
                 <p className="text-zinc-500">Real-time risk assessment and compliance monitoring across your procurement lifecycle.</p>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat) => (
                     <div
                         key={stat.name}
-                        className="flex flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+                        className="flex flex-col rounded-xl border border-zinc-200 bg-white p-5 sm:p-6 shadow-sm transition-all hover:shadow-md"
                     >
                         <div className="flex items-center justify-between">
                             <div className="rounded-lg bg-zinc-100 p-2 text-zinc-900">
                                 <stat.icon className="h-5 w-5" />
                             </div>
                             <div className={stat.trend === "up" ? "text-emerald-600" : "text-rose-600"}>
-                                <span className="flex items-center text-sm font-medium">
+                                <span className="flex items-center text-xs sm:text-sm font-medium">
                                     {stat.change}
                                     {stat.trend === "up" ? (
                                         <ArrowUpRight className="ml-1 h-3 w-3" />
@@ -128,15 +128,15 @@ export default function DashboardPage() {
                             </div>
                         </div>
                         <div className="mt-4">
-                            <p className="text-sm font-medium text-zinc-500">{stat.name}</p>
-                            <h3 className="text-3xl font-bold text-zinc-900 tracking-tight">{stat.value}</h3>
-                            <p className="mt-1 text-xs text-zinc-400">{stat.description}</p>
+                            <p className="text-xs sm:text-sm font-medium text-zinc-500">{stat.name}</p>
+                            <h3 className="text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">{stat.value}</h3>
+                            <p className="mt-1 text-[10px] sm:text-xs text-zinc-400 font-medium">{stat.description}</p>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-7">
+            <div className="grid gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-7">
                 <div className="lg:col-span-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
                         <div>

@@ -64,19 +64,19 @@ export default function AlertsPage() {
                 ))}
             </div>
 
-            <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <div className="flex flex-1 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
                     <Search className="h-4 w-4 text-zinc-400" />
                     <input
                         type="text"
-                        placeholder="Search alerts by ID, type, or procurement..."
+                        placeholder="Search..."
                         className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-500"
                     />
                 </div>
-                <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                    <button className="flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 whitespace-nowrap">
                         <Filter className="h-4 w-4" />
-                        Filter By Severity
+                        Severity
                     </button>
                 </div>
             </div>
@@ -95,38 +95,38 @@ export default function AlertsPage() {
                     alertList.map((alert) => (
                         <div
                             key={alert.docId}
-                            className="flex flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-zinc-300 group"
+                            className="flex flex-col rounded-xl border border-zinc-200 bg-white p-4 sm:p-6 shadow-sm transition-all hover:border-zinc-300 group"
                         >
-                            <div className="flex items-start justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                 <div className="flex gap-4">
-                                    <div className={`mt-1 h-10 w-10 rounded-xl flex items-center justify-center ${alert.severity === "Critical" ? "bg-rose-100 text-rose-600" :
+                                    <div className={`mt-1 h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${alert.severity === "Critical" ? "bg-rose-100 text-rose-600" :
                                         alert.severity === "High" ? "bg-orange-100 text-orange-600" : "bg-yellow-100 text-yellow-600"
                                         }`}>
                                         <AlertTriangle className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-lg font-bold text-zinc-900 group-hover:text-zinc-950">{alert.title}</span>
-                                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${alert.status === "New" ? "bg-blue-100 text-blue-700" :
+                                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                                            <span className="text-base sm:text-lg font-bold text-zinc-900 group-hover:text-zinc-950 leading-tight">{alert.title}</span>
+                                            <span className={`rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest ${alert.status === "New" ? "bg-blue-100 text-blue-700" :
                                                 alert.status === "Acknowledged" ? "bg-yellow-100 text-yellow-700" : "bg-emerald-100 text-emerald-700"
                                                 }`}>
                                                 {alert.status}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm mt-1">
-                                            <span className="font-mono text-xs font-bold text-zinc-400">{alert.procurementId}</span>
-                                            <span className="h-1 w-1 rounded-full bg-zinc-300"></span>
-                                            <span className="text-zinc-500 font-medium">Condition Detected</span>
-                                            <span className="h-1 w-1 rounded-full bg-zinc-300"></span>
-                                            <span className="text-zinc-400 text-xs">{new Date(alert.createdAt).toLocaleDateString()}</span>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+                                            <span className="font-mono text-[10px] sm:text-xs font-bold text-zinc-400">{alert.procurementId}</span>
+                                            <span className="h-1 w-1 rounded-full bg-zinc-300 hidden sm:block"></span>
+                                            <span className="text-zinc-500 font-medium text-xs">Condition Detected</span>
+                                            <span className="h-1 w-1 rounded-full bg-zinc-300 hidden sm:block"></span>
+                                            <span className="text-zinc-400 text-[10px] sm:text-xs">{new Date(alert.createdAt).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 sm:self-start">
                                     {alert.status === "New" && (
                                         <button
                                             onClick={() => updateStatus(alert.docId, "Acknowledged")}
-                                            className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center gap-2"
+                                            className="flex-1 sm:flex-none rounded-lg border border-zinc-200 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center justify-center gap-2"
                                         >
                                             Acknowledge
                                         </button>
@@ -134,9 +134,9 @@ export default function AlertsPage() {
                                     {alert.status !== "Resolved" && (
                                         <button
                                             onClick={() => updateStatus(alert.docId, "Resolved")}
-                                            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 flex items-center gap-2 shadow-sm"
+                                            className="flex-1 sm:flex-none rounded-lg bg-zinc-900 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-white hover:bg-zinc-800 flex items-center justify-center gap-2 shadow-sm"
                                         >
-                                            <CheckCircle2 className="h-4 w-4" />
+                                            <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
                                             Resolve
                                         </button>
                                     )}

@@ -207,8 +207,8 @@ export default function NewProcurementPage() {
 
                 {/* Step 2: Analysis & Form (Only shown when file is uploaded or analyzed) */}
                 {(file || analysisResult) && (
-                    <form onSubmit={handleSubmit} className="grid gap-10 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-5 duration-700">
-                        <div className="lg:col-span-2 space-y-10">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                        <div className="lg:col-span-2 space-y-8 lg:space-y-10 order-2 lg:order-1">
                             <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm space-y-10">
                                 <section className="space-y-8">
                                     <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
